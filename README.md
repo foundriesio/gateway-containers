@@ -1,8 +1,8 @@
-# LTD IoT Gateway Containers
+# Open Source Foundries IoT Gateway Containers
 
 ## Quick Start
 
-On a fresh image (capable of running docker), run the following commands to bootstrap your LTD IoT Gateway environment:
+On a fresh image (capable of running docker), run the following commands to bootstrap your OSF IoT Gateway environment:
 
 ### Bluetooth LE 6LoWPAN Joiner
 
