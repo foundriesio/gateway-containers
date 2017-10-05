@@ -15,8 +15,8 @@ EXPOSE 1883 8883
 # Mosquitto template config file
 COPY etc-mosquitto-template.conf /etc/mosquitto/template.conf
 
-# Download the Bluemix setup script
-RUN wget --no-check-certificate https://raw.githubusercontent.com/linaro-technologies/iot-gateway-files/master/mosquitto-conf.sh -O /usr/bin/mosquitto-conf
+# Copy the Bluemix setup script
+COPY mosquitto-conf.sh /usr/bin/mosquitto-conf
 RUN chmod +x /usr/bin/mosquitto-conf
 
 COPY start.sh start.sh
