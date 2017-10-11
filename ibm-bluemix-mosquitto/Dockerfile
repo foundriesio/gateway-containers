@@ -1,4 +1,4 @@
-FROM linarotechnologies/minideb:stretch
+FROM opensourcefoundries/minideb:stretch
 
 # Share step with the bt-joiner container
 RUN install_packages bluez wget

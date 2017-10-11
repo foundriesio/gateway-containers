@@ -1,4 +1,4 @@
-FROM linarotechnologies/alpine:edge
+FROM opensourcefoundries/alpine:edge
 
 RUN apk add --no-cache wget openjdk8-jre-base ca-certificates
 

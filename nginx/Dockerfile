@@ -1,4 +1,4 @@
-FROM linarotechnologies/alpine:3.5
+FROM opensourcefoundries/alpine:3.5
 
 # Based on https://github.com/nginxinc/docker-nginx/tree/master/mainline/alpine
 # Includes one additional patch for experimental DTLS support
