@@ -28,14 +28,6 @@ Start the container:
 docker run --restart=always -d -t --privileged --net=host --read-only --tmpfs=/var/run --tmpfs=/var/lock --tmpfs=/var/log -v /home/linaro/bluetooth_6lowpand.conf:/etc/bluetooth/bluetooth_6lowpand.conf --name bt-joiner linarotechnologies/bt-joiner:latest
 ```
 
-### Tinyproxy (IPv6 -> IPv4)
-
-Use *--add-host* to specify the local address of the hawkBit container:
-
-```
-docker run --restart=always -d -t --net=host --read-only --tmpfs=/var/run --tmpfs=/var/log --tmpfs=/tmp --add-host=gitci.com:192.168.1.10 --name tinyproxy linarotechnologies/tinyproxy:latest
-```
-
 ### Mosquitto MQTT Broker
 
 Brokering MQTT data from an IoT device to an apporpriate data system can be done using a pre-built mosquitto broker.  Though you can run any number of brokers, you would want to change the expost port before trying to run multiple brokers.  It's typical that you would run one of these containers on your gateway.
