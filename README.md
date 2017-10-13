@@ -4,9 +4,21 @@
 
 On a fresh image (capable of running docker), run the following commands to bootstrap your OSF IoT Gateway environment:
 
-### Bluetooth LE 6LoWPAN Joiner
+In order to access the registry, you will need to login using the docker
+command line using your subscriber id and a personal access token
 
-Create the bluetooth 6lowpand configuration file:
+Log into the Registry:
+
+```
+docker login registry.foundries.io
+Username: <subscriber id>
+Password: <personal access token with 'api' scope for Git over HTTP>
+```
+
+### bt-joiner, a Bluetooth LE / 6LoWPAN joining script
+
+In order to connect Bluetooth low energy devices we will use the bt-joiner
+container.  The container can be configured using the Bluetooth/6LoWPAN configuration file; ~/bluetooth_6lowpand.conf:
 
 ```
 HCI_INTERFACE=hci0
@@ -25,67 +37,141 @@ USE_WL=0
 Start the container:
 
 ```
-docker run --restart=always -d -t --privileged --net=host --read-only --tmpfs=/var/run --tmpfs=/var/lock --tmpfs=/var/log -v /home/linaro/bluetooth_6lowpand.conf:/etc/bluetooth/bluetooth_6lowpand.conf --name bt-joiner linarotechnologies/bt-joiner:latest
+docker run --restart=always -d -t --privileged --net=host --read-only \
+  --tmpfs=/run --tmpfs=/var/lock --tmpfs=/var/log \
+  -v /home/osf/bluetooth_6lowpand.conf:/etc/bluetooth/bluetooth_6lowpand.conf \
+  --name bt-joiner \
+  registry.foundries.io/development/microplatforms/linux/gateway-containers/bt-joiner:latest
 ```
 
 ### Mosquitto MQTT Broker
 
-Brokering MQTT data from an IoT device to an apporpriate data system can be done using a pre-built mosquitto broker.  Though you can run any number of brokers, you would want to change the expost port before trying to run multiple brokers.  It's typical that you would run one of these containers on your gateway.
+Brokering MQTT data from an IoT device to an appropriate data system can be
+done using a pre-built mosquitto broker.  Mosquitto is a comprehensive
+MQTT broker that can be used to securely bridge to other MQTT servers,  in
+this example we provide a simple local-only only configuration.
 
-#### Option 1: IBM Bluemix Mosquitto
-
-Create the authentication keys file:
-
-```
-$ cat ~/ibm-bluemix-mosquitto.env
-BLUEMIX_AUTHKEY=a-org-authkey
-BLUEMIX_AUTHTOKEN=auth-token
-BLUEMIX_ORG=bluemix-org
-GW_DEVICE_TYPE=hikey
-```
-
-Start the container:
+Create a mosquitto configuration file, ~/mosquitto.conf:
 
 ```
-docker run --restart=always -d -t --net=host --env-file=/home/linaro/ibm-bluemix-mosquitto.env --name ibm-bluemix-mosquitto linarotechnologies/ibm-bluemix-mosquitto:latest
-```
-
-#### Option 2: Generic Mosquitto broker
-
-Create a local mosquitto configuration file:
-
-```
-$ cat ~/mosquitto.conf
-# General settings
+# Configuration for a local-only mqtt broker
 log_dest stdout
 
-# Bridge configuration
-connection #connection-name
-address #url:#port
-remote_username #username
-remote_password #password
-try_private false
-start_type automatic
-bridge_attempt_unsubscribe false
-notifications false
 connection_messages true
+listener 1883
 
-# Device management subscriptions
-topic iotdm-1/type/+/id/# in 1 "" ""
-
-# Gateway notifications
-topic iot-2/type/+/id/+/notify in 1 "" ""
-
-# Commands and events
-topic iot-2/type/+/id/+/cmd/+/fmt/+ in "" ""
-topic iot-2/type/+/id/+/evt/+/fmt/+ out "" ""
-
-# Device management publications
-topic iotdevice-1/type/+/id/# out 1 "" ""
+#enable a anonymous websockets connection
+listener 9001
+protocol websockets
 ```
 
 Start the container:
 
 ```
-docker run --restart=always -d -t --net=host --read-only -v /home/linaro/mosquitto.conf:/etc/mosquitto/conf.d/mosquitto.conf --name mosquitto linarotechnologies/mosquitto:latest
+docker run --restart=always -d -t --net=host --read-only \
+  -v /home/osf/mosquitto.conf:/etc/mosquitto/conf.d/mosquitto.conf \
+  --name mosquitto \
+  registry.foundries.io/development/microplatforms/linux/gateway-containers/mosquitto:latest
+```
+
+### HTTP Proxy (nginx-http-proxy)
+
+In order to proxy traffic from the IPv6 IoT devices connected via 6LoWPAN
+over BLE, we use a simple NGINX proxy configuration.
+
+Create an nginx configuration file; nginx-http-proxy.conf:
+```
+user  nginx;
+worker_processes  auto;
+
+error_log  /var/log/nginx/error.log debug;
+pid        /var/run/nginx.pid;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    server {
+        listen  [::]:8080;
+        listen  0.0.0.0:8080;
+
+        location  /DEFAULT {
+            proxy_pass  http://gitci.com:8080;
+        }
+    }
+}
+```
+
+Start the Container:
+
+```
+export GW_HOSTNAME=192.168.0.43
+docker run --restart=always -d -t --net=host \
+    --read-only --tmpfs=/var/run --tmpfs=/var/cache/nginx \
+    --add-host=gitci.com:$GW_HOSTNAME \
+    -v /home/osf/nginx-http-proxy.conf:/etc/nginx/nginx.conf \
+    --name nginx-http-proxy registry.foundries.io/development/microplatforms/linux/gateway-containers/nginx:latest \
+    nginx-debug -g 'daemon off;'
+```
+
+### HTTP/COAP proxy
+
+To route COAP messages (udp) across HTTP we use a HTTP/COAP proxy using
+a second nginx instance.
+
+Create an nginx configuration file; nginx-lwm2m.conf:
+```
+user  nginx;
+worker_processes  auto;
+
+error_log  /var/log/nginx/error.log debug;
+pid        /var/run/nginx.pid;
+
+events {
+    worker_connections  1024;
+}
+
+stream {
+    log_format  basic  '$remote_addr [$time_local] '
+                       '$protocol $status $bytes_sent $bytes_received '
+                       '$session_time';
+
+    access_log  /var/log/nginx/access.log basic buffer=32k;
+
+    server {
+        listen  [::]:5683 udp;
+        listen  0.0.0.0:5683 udp;
+        proxy_connect_timeout 10s;
+        proxy_timeout 5m;
+        proxy_pass  gitci.com:5683;
+    }
+
+    server {
+        listen  [::]:5684 udp;
+        listen  0.0.0.0:5684 udp;
+        proxy_connect_timeout 10s;
+        proxy_timeout 5m;
+        proxy_pass  gitci.com:5684;
+    }
+
+    server {
+        listen  [::]:5685 udp;
+        listen  0.0.0.0:5685 udp;
+        proxy_connect_timeout 10s;
+        proxy_timeout 5m;
+        proxy_pass  gitci.com:5685;
+    }
+}
+```
+
+start the container:
+
+```
+export GW_HOSTNAME=192.168.0.43
+docker run --restart=always -d -t --net=host \
+    --read-only --tmpfs=/var/run  --add-host=gitci.com:$GW_HOSTNAME \
+    -v /home/osf/nginx-lwm2m.conf:/etc/nginx/nginx.conf \
+    --name nginx-coap-proxy registry.foundries.io/development/microplatforms/linux/gateway-containers/nginx:latest \
+    nginx-debug -g 'daemon off;'
 ```
