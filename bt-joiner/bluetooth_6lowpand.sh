@@ -153,6 +153,10 @@ COMMAND LINE OPTIONS FOR CONFIG FILE MANAGEMENT:
 -wlrm  | --whitelist_remove	: remove device from whitelist (format: ##:##:##:##:##:##)
 -wlclr | --whitelist_clear	: clears all whitelist entries
 -wlls  | --whitelist_list	: list the WL= entries in conf
+-bladd | --blacklist_add	: add device to blacklist (format: ##:##:##:##:##:##)
+-blrm  | --blacklist_remove	: remove device from blacklist (format: ##:##:##:##:##:##)
+-blclr | --blacklist_clear	: clears all blacklist entries
+-blls  | --blacklist_list	: list the BL= entries in conf
 
 CONFIGURATION FILE ENTRIES:
 SKIP_INIT	: skip bt 6lowpan initialization (Ex: SKIP_INIT=1)
@@ -164,6 +168,7 @@ JOIN_DELAY	: device join delay in seconds (Ex: JOIN_DELAY=1)
 MAX_DEVICES	: maximum # of devices to join (Ex: MAX_DEVICES=9)
 USE_WL		: use-whitelist (Ex: USE_WL=1)
 WL		: whitelist device entry (Ex: WL=##:##:##:##:##:##)
+BL		: blacklist device entry (Ex: BL=##:##:##:##:##:##)
 END_OF_HELP_MARKER
 }
 
@@ -381,6 +386,53 @@ while [ "${#}" -gt 0 ]; do
 			exit 0
 		fi
 		;;
+	"-bladd" | "--blacklist_add")
+		shift
+		__device="$(echo ${1} | tr '[:lower:]' '[:upper:]')"
+		if echo "${__device}" | grep -q -E "${MACADDR_REGEX_LINE}"; then
+			result=$(conf_add_entry "BL=${__device}")
+			if [ "${result}" -ne "0" ]; then
+				exit "${result}"
+			fi
+			connected_list=$(get_connected_list)
+			if [[ "${connected_list}" == *"[${__device}]"* ]]; then
+				connect_device ${__device} 0
+			fi
+			shift
+		else
+			write_log ${LOG_LEVEL_ERROR} "Invalid BT address format.  Use ##:##:##:##:##:##"
+			exit 1
+		fi
+		;;
+	"-blrm" | "--blacklist_remove")
+		shift
+		__device="$(echo ${1} | tr '[:lower:]' '[:upper:]')"
+		if echo "${__device}" | grep -q -E "${MACADDR_REGEX_LINE}"; then
+			result=$(conf_remove_entry "BL=${__device}")
+			if [ "${result}" -ne "0" ]; then
+				exit "${result}"
+			fi
+			shift
+		else
+			write_log ${LOG_LEVEL_ERROR} "Invalid BT address format.  Use ##:##:##:##:##:##"
+			exit 1
+		fi
+		;;
+	"-blclr" | "--blacklist_clear")
+		result=$(conf_remove_entry "BL=*")
+		if [ "${result}" -ne "0" ]; then
+			exit "${result}"
+		fi
+		shift
+		;;
+	"-blls" | "--blacklist_list")
+		if [ -e "${CONFIG_PATH}" ]; then
+			grep "^BL=" ${CONFIG_PATH} | cut -f2 -d${CONFIG_FILE_DELIMITER}
+			exit "${?}"
+		else
+			exit 0
+		fi
+		;;
 	"-v" | "--version")
 		echo "${SCRIPT_VERSION}"
 		exit 0
@@ -470,6 +522,12 @@ function find_ipsp_device {
 			if [ "${option_use_whitelist}" -eq "1" ] &&
 			   [ "$(conf_check_pattern "WL=${__found_devices}")" -ne "1" ]; then
 				write_log ${LOG_LEVEL_DEBUG} "IGNORING NODE (WL): ${__found_devices}"
+				continue
+			fi
+
+			# check blacklist
+			if [ "$(conf_check_pattern "BL=${__found_devices}")" -eq "1" ]; then
+				write_log ${LOG_LEVEL_DEBUG} "IGNORING NODE (BL): ${__found_devices}"
 				continue
 			fi
 
