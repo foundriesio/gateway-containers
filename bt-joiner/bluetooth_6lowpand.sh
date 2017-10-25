@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # Copyright (c) 2017 Linaro Limited
+# Copyright (c) 2017 Open Source Foundries
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -441,38 +442,45 @@ function find_ipsp_device {
 	for __line in ${__lines}; do
 		if echo "${__line}" | grep -q -E "${MACADDR_REGEX_LINE}"; then
 			__found_devices=${__line}
-		else
-			if [ ! -z "${__found_devices}" ]; then
-				if [ "${option_ignore_filter}" -eq "1" ] ||
-				   [ "${__line}" == "${BT_NODE_FILTER}" ]; then
-					# Store the list of connect devices in upper case surrounded by []
-					connected_list=$(get_connected_list)
-					# check that this node isn't already connected
-					if [[ "${connected_list}" == *"[${__found_devices}]"* ]]; then
-						write_log ${LOG_LEVEL_VERBOSE_DEBUG} "ALREADY CONNECTED: ${__found_devices}"
-					else
-						# check if max devices are already connected, if so abort connect loop
-						__count_devices=$(count_connected_devices "${connected_list}")
-						if [ "${__count_devices}" -ge "${option_max_devices}" ]; then
-							write_log ${LOG_LEVEL_DEBUG} "MAX DEVICES CONNECTED (${__count_devices}) -- STOP ADDING"
-							break
-						fi
-
-						# check whitelist
-						if [ "${option_use_whitelist}" -eq "0" ] ||
-						   [ "$(conf_check_pattern "WL=${__found_devices}")" -eq "1" ]; then
-							write_log ${LOG_LEVEL_INFO} "FOUND NODE: ${__found_devices}"
-							connect_device ${__found_devices} 1
-							# BUGFIX: waiting before continuing avoids a crash in 6lowpan
-							sleep ${option_join_delay}
-						else
-							write_log ${LOG_LEVEL_DEBUG} "IGNORING NODE: ${__found_devices}"
-						fi
-					fi
-				fi
-			fi
-			__found_devices=""
+			continue
 		fi
+
+		if [ -z "${__found_devices}" ]; then
+			continue
+		fi
+
+		if [ "${option_ignore_filter}" -eq "1" ] ||
+		   [ "${__line}" == "${BT_NODE_FILTER}" ]; then
+			# Store the list of connect devices in upper case surrounded by []
+			connected_list=$(get_connected_list)
+			# check that this node isn't already connected
+			if [[ "${connected_list}" == *"[${__found_devices}]"* ]]; then
+				write_log ${LOG_LEVEL_VERBOSE_DEBUG} "ALREADY CONNECTED: ${__found_devices}"
+				continue
+			fi
+
+			# check if max devices are already connected, if so abort connect loop
+			__count_devices=$(count_connected_devices "${connected_list}")
+			if [ "${__count_devices}" -ge "${option_max_devices}" ]; then
+				write_log ${LOG_LEVEL_DEBUG} "MAX DEVICES CONNECTED (${__count_devices}) -- STOP ADDING"
+				break
+			fi
+
+			# check whitelist
+			if [ "${option_use_whitelist}" -eq "1" ] &&
+			   [ "$(conf_check_pattern "WL=${__found_devices}")" -ne "1" ]; then
+				write_log ${LOG_LEVEL_DEBUG} "IGNORING NODE (WL): ${__found_devices}"
+				continue
+			fi
+
+			write_log ${LOG_LEVEL_INFO} "FOUND NODE: ${__found_devices}"
+			connect_device ${__found_devices} 1
+
+			# BUGFIX: waiting before continuing avoids a crash in 6lowpan
+			sleep ${option_join_delay}
+		fi
+
+		__found_devices=""
 	done
 }
 
