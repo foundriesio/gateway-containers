@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # Copyright (c) 2017 Linaro Limited
+# Copyright (c) 2017 Open Source Foundries
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -152,6 +153,10 @@ COMMAND LINE OPTIONS FOR CONFIG FILE MANAGEMENT:
 -wlrm  | --whitelist_remove	: remove device from whitelist (format: ##:##:##:##:##:##)
 -wlclr | --whitelist_clear	: clears all whitelist entries
 -wlls  | --whitelist_list	: list the WL= entries in conf
+-bladd | --blacklist_add	: add device to blacklist (format: ##:##:##:##:##:##)
+-blrm  | --blacklist_remove	: remove device from blacklist (format: ##:##:##:##:##:##)
+-blclr | --blacklist_clear	: clears all blacklist entries
+-blls  | --blacklist_list	: list the BL= entries in conf
 
 CONFIGURATION FILE ENTRIES:
 SKIP_INIT	: skip bt 6lowpan initialization (Ex: SKIP_INIT=1)
@@ -163,6 +168,7 @@ JOIN_DELAY	: device join delay in seconds (Ex: JOIN_DELAY=1)
 MAX_DEVICES	: maximum # of devices to join (Ex: MAX_DEVICES=9)
 USE_WL		: use-whitelist (Ex: USE_WL=1)
 WL		: whitelist device entry (Ex: WL=##:##:##:##:##:##)
+BL		: blacklist device entry (Ex: BL=##:##:##:##:##:##)
 END_OF_HELP_MARKER
 }
 
@@ -380,6 +386,53 @@ while [ "${#}" -gt 0 ]; do
 			exit 0
 		fi
 		;;
+	"-bladd" | "--blacklist_add")
+		shift
+		__device="$(echo ${1} | tr '[:lower:]' '[:upper:]')"
+		if echo "${__device}" | grep -q -E "${MACADDR_REGEX_LINE}"; then
+			result=$(conf_add_entry "BL=${__device}")
+			if [ "${result}" -ne "0" ]; then
+				exit "${result}"
+			fi
+			connected_list=$(get_connected_list)
+			if [[ "${connected_list}" == *"[${__device}]"* ]]; then
+				connect_device ${__device} 0
+			fi
+			shift
+		else
+			write_log ${LOG_LEVEL_ERROR} "Invalid BT address format.  Use ##:##:##:##:##:##"
+			exit 1
+		fi
+		;;
+	"-blrm" | "--blacklist_remove")
+		shift
+		__device="$(echo ${1} | tr '[:lower:]' '[:upper:]')"
+		if echo "${__device}" | grep -q -E "${MACADDR_REGEX_LINE}"; then
+			result=$(conf_remove_entry "BL=${__device}")
+			if [ "${result}" -ne "0" ]; then
+				exit "${result}"
+			fi
+			shift
+		else
+			write_log ${LOG_LEVEL_ERROR} "Invalid BT address format.  Use ##:##:##:##:##:##"
+			exit 1
+		fi
+		;;
+	"-blclr" | "--blacklist_clear")
+		result=$(conf_remove_entry "BL=*")
+		if [ "${result}" -ne "0" ]; then
+			exit "${result}"
+		fi
+		shift
+		;;
+	"-blls" | "--blacklist_list")
+		if [ -e "${CONFIG_PATH}" ]; then
+			grep "^BL=" ${CONFIG_PATH} | cut -f2 -d${CONFIG_FILE_DELIMITER}
+			exit "${?}"
+		else
+			exit 0
+		fi
+		;;
 	"-v" | "--version")
 		echo "${SCRIPT_VERSION}"
 		exit 0
@@ -441,38 +494,51 @@ function find_ipsp_device {
 	for __line in ${__lines}; do
 		if echo "${__line}" | grep -q -E "${MACADDR_REGEX_LINE}"; then
 			__found_devices=${__line}
-		else
-			if [ ! -z "${__found_devices}" ]; then
-				if [ "${option_ignore_filter}" -eq "1" ] ||
-				   [ "${__line}" == "${BT_NODE_FILTER}" ]; then
-					# Store the list of connect devices in upper case surrounded by []
-					connected_list=$(get_connected_list)
-					# check that this node isn't already connected
-					if [[ "${connected_list}" == *"[${__found_devices}]"* ]]; then
-						write_log ${LOG_LEVEL_VERBOSE_DEBUG} "ALREADY CONNECTED: ${__found_devices}"
-					else
-						# check if max devices are already connected, if so abort connect loop
-						__count_devices=$(count_connected_devices "${connected_list}")
-						if [ "${__count_devices}" -ge "${option_max_devices}" ]; then
-							write_log ${LOG_LEVEL_DEBUG} "MAX DEVICES CONNECTED (${__count_devices}) -- STOP ADDING"
-							break
-						fi
-
-						# check whitelist
-						if [ "${option_use_whitelist}" -eq "0" ] ||
-						   [ "$(conf_check_pattern "WL=${__found_devices}")" -eq "1" ]; then
-							write_log ${LOG_LEVEL_INFO} "FOUND NODE: ${__found_devices}"
-							connect_device ${__found_devices} 1
-							# BUGFIX: waiting before continuing avoids a crash in 6lowpan
-							sleep ${option_join_delay}
-						else
-							write_log ${LOG_LEVEL_DEBUG} "IGNORING NODE: ${__found_devices}"
-						fi
-					fi
-				fi
-			fi
-			__found_devices=""
+			continue
 		fi
+
+		if [ -z "${__found_devices}" ]; then
+			continue
+		fi
+
+		if [ "${option_ignore_filter}" -eq "1" ] ||
+		   [ "${__line}" == "${BT_NODE_FILTER}" ]; then
+			# Store the list of connect devices in upper case surrounded by []
+			connected_list=$(get_connected_list)
+			# check that this node isn't already connected
+			if [[ "${connected_list}" == *"[${__found_devices}]"* ]]; then
+				write_log ${LOG_LEVEL_VERBOSE_DEBUG} "ALREADY CONNECTED: ${__found_devices}"
+				continue
+			fi
+
+			# check if max devices are already connected, if so abort connect loop
+			__count_devices=$(count_connected_devices "${connected_list}")
+			if [ "${__count_devices}" -ge "${option_max_devices}" ]; then
+				write_log ${LOG_LEVEL_DEBUG} "MAX DEVICES CONNECTED (${__count_devices}) -- STOP ADDING"
+				break
+			fi
+
+			# check whitelist
+			if [ "${option_use_whitelist}" -eq "1" ] &&
+			   [ "$(conf_check_pattern "WL=${__found_devices}")" -ne "1" ]; then
+				write_log ${LOG_LEVEL_DEBUG} "IGNORING NODE (WL): ${__found_devices}"
+				continue
+			fi
+
+			# check blacklist
+			if [ "$(conf_check_pattern "BL=${__found_devices}")" -eq "1" ]; then
+				write_log ${LOG_LEVEL_DEBUG} "IGNORING NODE (BL): ${__found_devices}"
+				continue
+			fi
+
+			write_log ${LOG_LEVEL_INFO} "FOUND NODE: ${__found_devices}"
+			connect_device ${__found_devices} 1
+
+			# BUGFIX: waiting before continuing avoids a crash in 6lowpan
+			sleep ${option_join_delay}
+		fi
+
+		__found_devices=""
 	done
 }
 
