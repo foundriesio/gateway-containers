@@ -38,13 +38,13 @@ stream {
     server {
         listen  [::]:5683 udp;
         listen  0.0.0.0:5683 udp;
-        proxy_pass  gitci.com:5683;
+        proxy_pass  mgmt.foundries.io:5683;
     }
 
     server {
         listen  [::]:5684 udp;
         listen  0.0.0.0:5684 udp;
-        proxy_pass  gitci.com:5684;
+        proxy_pass  mgmt.foundries.io:5684;
     }
 }
 ```
@@ -52,7 +52,7 @@ stream {
 Then start the container by overwriting nginx.conf:
 
 ```
-docker run --restart=always -d -t --net=host --read-only --tmpfs=/var/run --add-host=gitci.com:<lwm2m server ip address> -v /path/to/nginx-lwm2m.conf:/etc/nginx/nginx.conf --name nginx nginx
+docker run --restart=always -d -t --net=host --read-only --tmpfs=/var/run --add-host=mgmt.foundries.io:<lwm2m server ip address> -v /path/to/nginx-lwm2m.conf:/etc/nginx/nginx.conf --name nginx nginx
 ```
 
 ### Debug mode
@@ -66,5 +66,5 @@ docker run --restart=always -d -t --net=host -v /path/to/nginx-lwm2m.conf:/etc/n
 ## Run the pre-built container
 
 ```
-docker run --restart=always -d -t --net=host --read-only --tmpfs=/var/run --add-host=gitci.com:<lwm2m server ip address> -v /path/to/nginx-lwm2m.conf:/etc/nginx/nginx.conf --name nginx linarotechnologies/nginx:latest
+docker run --restart=always -d -t --net=host --read-only --tmpfs=/var/run --add-host=mgmt.foundries.io:<lwm2m server ip address> -v /path/to/nginx-lwm2m.conf:/etc/nginx/nginx.conf --name nginx linarotechnologies/nginx:latest
 ```

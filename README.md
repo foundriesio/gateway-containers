@@ -97,7 +97,7 @@ http {
         listen  0.0.0.0:8080;
 
         location  /DEFAULT {
-            proxy_pass  http://gitci.com:8080;
+            proxy_pass  http://mgmt.foundries.io:8080;
         }
     }
 }
@@ -109,7 +109,7 @@ Start the Container:
 export GW_HOSTNAME=192.168.0.43
 docker run --restart=always -d -t --net=host \
     --read-only --tmpfs=/var/run --tmpfs=/var/cache/nginx \
-    --add-host=gitci.com:$GW_HOSTNAME \
+    --add-host=mgmt.foundries.io:$GW_HOSTNAME \
     -v /home/osf/nginx-http-proxy.conf:/etc/nginx/nginx.conf \
     --name nginx-http-proxy registry.foundries.io/development/microplatforms/linux/gateway-containers/nginx:latest \
     nginx-debug -g 'daemon off;'
@@ -144,7 +144,7 @@ stream {
         listen  0.0.0.0:5683 udp;
         proxy_connect_timeout 10s;
         proxy_timeout 5m;
-        proxy_pass  gitci.com:5683;
+        proxy_pass  mgmt.foundries.io:5683;
     }
 
     server {
@@ -152,7 +152,7 @@ stream {
         listen  0.0.0.0:5684 udp;
         proxy_connect_timeout 10s;
         proxy_timeout 5m;
-        proxy_pass  gitci.com:5684;
+        proxy_pass  mgmt.foundries.io:5684;
     }
 
     server {
@@ -160,7 +160,7 @@ stream {
         listen  0.0.0.0:5685 udp;
         proxy_connect_timeout 10s;
         proxy_timeout 5m;
-        proxy_pass  gitci.com:5685;
+        proxy_pass  mgmt.foundries.io:5685;
     }
 }
 ```
@@ -170,7 +170,7 @@ start the container:
 ```
 export GW_HOSTNAME=192.168.0.43
 docker run --restart=always -d -t --net=host \
-    --read-only --tmpfs=/var/run  --add-host=gitci.com:$GW_HOSTNAME \
+    --read-only --tmpfs=/var/run  --add-host=mgmt.foundries.io:$GW_HOSTNAME \
     -v /home/osf/nginx-lwm2m.conf:/etc/nginx/nginx.conf \
     --name nginx-coap-proxy registry.foundries.io/development/microplatforms/linux/gateway-containers/nginx:latest \
     nginx-debug -g 'daemon off;'
