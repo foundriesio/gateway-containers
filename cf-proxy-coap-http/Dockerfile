@@ -6,8 +6,7 @@ RUN mkdir -p /opt/cf-proxy
 COPY Californium.properties /opt/cf-proxy
 COPY ProxyMapping.properties /opt/cf-proxy
 COPY Proxy.properties /opt/cf-proxy
-RUN cd /opt/cf-proxy && \
-    wget https://api.foundries.io/projects/development/cf-proxy-coap-http/builds/2/runs/cf-proxy-coap-http/cf-proxy-1.1.0-SNAPSHOT.jar
+COPY cf-proxy-1.1.0-SNAPSHOT.jar /opt/cf-proxy
 
 EXPOSE 5682
 
