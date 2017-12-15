@@ -1,4 +1,4 @@
-FROM opensourcefoundries/alpine:edge
+FROM alpine:3.7
 
 RUN apk add --no-cache bluez bluez-btmon bluez-meshctl py-dbus py-gobject3
 
