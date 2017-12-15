@@ -15,5 +15,5 @@ docker run --restart=always -d -t --net=host --read-only --name cf-proxy-coap-ht
 ## Run the pre-built container
 
 ```
-docker run --restart=always -d -t --net=host --read-only --name cf-proxy-coap-http linarotechnologies/cf-proxy-coap-http:latest
+docker run --restart=always -d -t --net=host --read-only --name cf-proxy-coap-http opensourcefoundries/cf-proxy-coap-http:latest
 ```

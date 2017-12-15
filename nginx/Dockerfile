@@ -2,7 +2,7 @@ FROM opensourcefoundries/alpine:3.5
 
 # Based on https://github.com/nginxinc/docker-nginx/tree/master/mainline/alpine
 # Includes one additional patch for experimental DTLS support
-MAINTAINER Ricardo Salveti "ricardo.salveti@linaro.org"
+MAINTAINER Ricardo Salveti "ricardo@opensourcefoundries.com"
 
 ENV NGINX_VERSION 1.13.2
 

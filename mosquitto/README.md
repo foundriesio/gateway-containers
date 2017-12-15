@@ -45,5 +45,5 @@ docker run --restart=always -d -t --net=host --read-only -v /path/to/mosquitto.c
 ## Run the pre-built container
 
 ```
-docker run --restart=always -d -t --net=host --read-only -v /path/to/mosquitto.conf:/etc/mosquitto/conf.d/mosquitto.conf --name mosquitto linarotechnologies/mosquitto:latest
+docker run --restart=always -d -t --net=host --read-only -v /path/to/mosquitto.conf:/etc/mosquitto/conf.d/mosquitto.conf --name mosquitto opensourcefoundries/mosquitto:latest
 ```

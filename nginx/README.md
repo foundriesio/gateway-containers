@@ -66,5 +66,5 @@ docker run --restart=always -d -t --net=host -v /path/to/nginx-lwm2m.conf:/etc/n
 ## Run the pre-built container
 
 ```
-docker run --restart=always -d -t --net=host --read-only --tmpfs=/var/run --add-host=mgmt.foundries.io:<lwm2m server ip address> -v /path/to/nginx-lwm2m.conf:/etc/nginx/nginx.conf --name nginx linarotechnologies/nginx:latest
+docker run --restart=always -d -t --net=host --read-only --tmpfs=/var/run --add-host=mgmt.foundries.io:<lwm2m server ip address> -v /path/to/nginx-lwm2m.conf:/etc/nginx/nginx.conf --name nginx opensourcefoundries/nginx:latest
 ```
