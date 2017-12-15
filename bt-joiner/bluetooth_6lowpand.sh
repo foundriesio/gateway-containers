@@ -18,7 +18,7 @@
 
 set -e
 
-SCRIPT_VERSION="1.05"
+SCRIPT_VERSION="1.06"
 
 # logging
 LOG_LEVEL_ERROR=1
@@ -554,6 +554,10 @@ if [ "${option_daemonize}" -eq "1" ]; then
 
 	# Make sure 6lowpan_enable is always 1
 	echo 1 > /sys/kernel/debug/bluetooth/6lowpan_enable
+
+	# reset hci interface
+	hciconfig ${option_hci_interface} up
+	hciconfig ${option_hci_interface} reset
 
 	while :; do
 		find_ipsp_device ${option_timeout}
