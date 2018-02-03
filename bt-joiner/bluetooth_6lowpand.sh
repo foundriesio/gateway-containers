@@ -16,8 +16,6 @@
 # limitations under the License.
 #
 
-set -e
-
 SCRIPT_VERSION="1.06"
 
 # logging
