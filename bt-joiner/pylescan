@@ -170,8 +170,12 @@ if __name__ == '__main__':
         if DEVICE_INTERFACE in interfaces:
             devices[path] = interfaces[DEVICE_INTERFACE]
 
-    adapter.SetDiscoveryFilter({ "Transport": "le" })
-    adapter.StartDiscovery()
+    try:
+        adapter.SetDiscoveryFilter({ "Transport": "le" })
+        adapter.StartDiscovery()
+    except dbus.exceptions.DBusException as e:
+        # Return non zero for any dbus exception
+        exit(1)
 
     mainloop = GObject.MainLoop()
     if options.timeout:

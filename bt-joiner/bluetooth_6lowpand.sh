@@ -489,6 +489,10 @@ function find_ipsp_device {
 	# Lines will start with MAC and then description broken by returns:
 	# Return the first MAC which is followed by BT_NODE_FILTER match
 	__lines=$(pylescan -i ${option_hci_interface} -c -t ${__timeout} -s)
+	if [ "${?}" -ne "0" ]; then
+		write_log ${LOG_LEVEL_ERROR} "ERROR generated during LE scan: ${?}"
+		exit 1
+	fi
 	for __line in ${__lines}; do
 		if echo "${__line}" | grep -q -E "${MACADDR_REGEX_LINE}"; then
 			__found_devices=${__line}
@@ -547,15 +551,32 @@ if [ "${option_daemonize}" -eq "1" ]; then
 	if [ "${option_skip_init}" -eq "0" ]; then
 		# INIT bluetooth modules
 		modprobe bluetooth_6lowpan
+		if [ "${?}" -ne "0" ]; then
+			write_log ${LOG_LEVEL_ERROR} "ERROR generated while inserting module bluetooth_6lowpan: ${?}"
+			exit 1
+		fi
 		sleep 1
 	fi
 
 	# Make sure 6lowpan_enable is always 1
 	echo 1 > /sys/kernel/debug/bluetooth/6lowpan_enable
+	if [ "${?}" -ne "0" ]; then
+		write_log ${LOG_LEVEL_ERROR} "ERROR generated while enabling 6lowpan: ${?}"
+		exit 1
+	fi
+
 
 	# reset hci interface
 	hciconfig ${option_hci_interface} up
+	if [ "${?}" -ne "0" ]; then
+		write_log ${LOG_LEVEL_ERROR} "ERROR generated while bringing HCI interface ${option_hci_interface} up: ${?}"
+		exit 1
+	fi
 	hciconfig ${option_hci_interface} reset
+	if [ "${?}" -ne "0" ]; then
+		write_log ${LOG_LEVEL_ERROR} "ERROR generated while resetting HCI interface ${option_hci_interface}: ${?}"
+		exit 1
+	fi
 
 	while :; do
 		find_ipsp_device ${option_timeout}
