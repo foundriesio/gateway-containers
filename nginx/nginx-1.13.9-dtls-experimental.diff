@@ -1,11 +1,9 @@
 # HG changeset patch
 # User Vladimir Homutov <vl@nginx.com>
-# Date 1494676066 -10800
-#      Sat May 13 14:47:46 2017 +0300
-# Node ID 277d16d38438fa107edb35dbbcc5476ed63890aa
-# Parent  eb5d119323d8cfae94aa01367935e6f9324a623e
-#
-# Origin: http://nginx.org/patches/dtls/
+# Date 1519222093 -10800
+#      Wed Feb 21 17:08:13 2018 +0300
+# Node ID b4b14f20123598d6c4bdff01e3c421e4f180f526
+# Parent  88aad69eccef0422719698b54c82e3a020c0fe93
 Stream: experimental DTLS support.
 
 With the patch, the "listen" directive in the "stream" block now accepts
@@ -56,8 +54,27 @@ stream {
         # the backend is a DTLS server
         proxy_pass 127.0.0.1:4433;
     }
-}
 
+diff --git a/auto/lib/openssl/conf b/auto/lib/openssl/conf
+--- a/auto/lib/openssl/conf
++++ b/auto/lib/openssl/conf
+@@ -132,4 +132,16 @@ END
+         exit 1
+     fi
+ 
++    ngx_feature="OpenSSL DTLS support"
++    ngx_feature_name="NGX_OPENSSL_DTLS"
++    ngx_feature_run=no
++    ngx_feature_incs="#include <openssl/ssl.h>"
++    ngx_feature_path=
++    ngx_feature_libs="-lssl -lcrypto $NGX_LIBDL"
++    ngx_feature_test="DTLSv1_listen(NULL, NULL)"
++    . auto/feature
++
++    if [ $ngx_found = yes ]; then
++        have=NGX_SSL_DTLS . auto/have
++    fi
+ fi
 diff --git a/src/event/ngx_event.h b/src/event/ngx_event.h
 --- a/src/event/ngx_event.h
 +++ b/src/event/ngx_event.h
@@ -72,7 +89,7 @@ diff --git a/src/event/ngx_event.h b/src/event/ngx_event.h
 diff --git a/src/event/ngx_event_accept.c b/src/event/ngx_event_accept.c
 --- a/src/event/ngx_event_accept.c
 +++ b/src/event/ngx_event_accept.c
-@@ -636,6 +636,81 @@ ngx_event_recvmsg(ngx_event_t *ev)
+@@ -644,6 +644,81 @@ ngx_event_recvmsg(ngx_event_t *ev)
  
  
  ngx_int_t
@@ -253,7 +270,7 @@ diff --git a/src/event/ngx_event_openssl.c b/src/event/ngx_event_openssl.c
      if (SSL_CTX_set_ex_data(ssl->ctx, ngx_ssl_server_conf_index, data) == 0) {
          ngx_ssl_error(NGX_LOG_EMERG, ssl->log, 0,
                        "SSL_CTX_set_ex_data() failed");
-@@ -1190,6 +1264,7 @@ ngx_ssl_create_connection(ngx_ssl_t *ssl
+@@ -1191,6 +1265,7 @@ ngx_ssl_create_connection(ngx_ssl_t *ssl
  
      if (flags & NGX_SSL_CLIENT) {
          SSL_set_connect_state(sc->connection);
@@ -261,7 +278,7 @@ diff --git a/src/event/ngx_event_openssl.c b/src/event/ngx_event_openssl.c
  
      } else {
          SSL_set_accept_state(sc->connection);
-@@ -1226,6 +1301,19 @@ ngx_ssl_handshake(ngx_connection_t *c)
+@@ -1227,6 +1302,19 @@ ngx_ssl_handshake(ngx_connection_t *c)
      int        n, sslerr;
      ngx_err_t  err;
  
@@ -281,7 +298,7 @@ diff --git a/src/event/ngx_event_openssl.c b/src/event/ngx_event_openssl.c
      ngx_ssl_clear_error(c->log);
  
      n = SSL_do_handshake(c->ssl->connection);
-@@ -1327,6 +1415,17 @@ ngx_ssl_handshake(ngx_connection_t *c)
+@@ -1328,6 +1416,17 @@ ngx_ssl_handshake(ngx_connection_t *c)
              return NGX_ERROR;
          }
  
@@ -299,7 +316,7 @@ diff --git a/src/event/ngx_event_openssl.c b/src/event/ngx_event_openssl.c
          return NGX_AGAIN;
      }
  
-@@ -1390,6 +1489,215 @@ ngx_ssl_handshake_handler(ngx_event_t *e
+@@ -1391,6 +1490,215 @@ ngx_ssl_handshake_handler(ngx_event_t *e
  }
  
  
@@ -518,7 +535,7 @@ diff --git a/src/event/ngx_event_openssl.c b/src/event/ngx_event_openssl.c
 diff --git a/src/event/ngx_event_openssl.h b/src/event/ngx_event_openssl.h
 --- a/src/event/ngx_event_openssl.h
 +++ b/src/event/ngx_event_openssl.h
-@@ -49,6 +49,9 @@
+@@ -50,6 +50,9 @@
  
  #endif
  
@@ -528,7 +545,7 @@ diff --git a/src/event/ngx_event_openssl.h b/src/event/ngx_event_openssl.h
  
  #define ngx_ssl_session_t       SSL_SESSION
  #define ngx_ssl_conn_t          SSL
-@@ -85,6 +88,9 @@ struct ngx_ssl_connection_s {
+@@ -86,6 +89,9 @@ struct ngx_ssl_connection_s {
      unsigned                    no_wait_shutdown:1;
      unsigned                    no_send_shutdown:1;
      unsigned                    handshake_buffer_set:1;
@@ -538,19 +555,19 @@ diff --git a/src/event/ngx_event_openssl.h b/src/event/ngx_event_openssl.h
  };
  
  
-@@ -137,6 +143,8 @@ typedef struct {
+@@ -138,6 +144,8 @@ typedef struct {
  #define NGX_SSL_TLSv1_1  0x0010
  #define NGX_SSL_TLSv1_2  0x0020
  #define NGX_SSL_TLSv1_3  0x0040
 +#define NGX_SSL_DTLSv1   0x0080
-+#define NGX_SSL_DTLSv1_2 0x0100
++#define NGX_SSL_DTLSv1_2 0x0200
  
  
  #define NGX_SSL_BUFFER   1
 diff --git a/src/stream/ngx_stream_core_module.c b/src/stream/ngx_stream_core_module.c
 --- a/src/stream/ngx_stream_core_module.c
 +++ b/src/stream/ngx_stream_core_module.c
-@@ -862,12 +862,6 @@ ngx_stream_core_listen(ngx_conf_t *cf, n
+@@ -849,12 +849,6 @@ ngx_stream_core_listen(ngx_conf_t *cf, n
              return "\"backlog\" parameter is incompatible with \"udp\"";
          }
  
@@ -587,7 +604,7 @@ diff --git a/src/stream/ngx_stream_proxy_module.c b/src/stream/ngx_stream_proxy_
      { ngx_string("TLSv1.1"), NGX_SSL_TLSv1_1 },
      { ngx_string("TLSv1.2"), NGX_SSL_TLSv1_2 },
      { ngx_string("TLSv1.3"), NGX_SSL_TLSv1_3 },
-+    { ngx_string("DTLSv1"),   NGX_SSL_DTLSv1 },
++    { ngx_string("DTLSv1"), NGX_SSL_DTLSv1 },
 +    { ngx_string("DTLSv1.2"), NGX_SSL_DTLSv1_2 },
      { ngx_null_string, 0 }
  };
@@ -640,7 +657,7 @@ diff --git a/src/stream/ngx_stream_proxy_module.c b/src/stream/ngx_stream_proxy_
      if (u->resolved == NULL) {
  
          uscf = pscf->upstream;
-@@ -767,14 +788,16 @@ ngx_stream_proxy_init_upstream(ngx_strea
+@@ -754,14 +775,16 @@ ngx_stream_proxy_init_upstream(ngx_strea
  
  #if (NGX_STREAM_SSL)
  
@@ -664,7 +681,7 @@ diff --git a/src/stream/ngx_stream_proxy_module.c b/src/stream/ngx_stream_proxy_
          }
  
          if (pc->ssl == NULL) {
-@@ -1057,6 +1080,8 @@ static void
+@@ -1044,6 +1067,8 @@ static void
  ngx_stream_proxy_ssl_handshake(ngx_connection_t *pc)
  {
      long                          rc;
@@ -673,7 +690,7 @@ diff --git a/src/stream/ngx_stream_proxy_module.c b/src/stream/ngx_stream_proxy_
      ngx_stream_session_t         *s;
      ngx_stream_upstream_t        *u;
      ngx_stream_proxy_srv_conf_t  *pscf;
-@@ -1096,6 +1121,29 @@ ngx_stream_proxy_ssl_handshake(ngx_conne
+@@ -1083,6 +1108,29 @@ ngx_stream_proxy_ssl_handshake(ngx_conne
              ngx_del_timer(pc->write);
          }
  
@@ -703,7 +720,21 @@ diff --git a/src/stream/ngx_stream_proxy_module.c b/src/stream/ngx_stream_proxy_
          ngx_stream_proxy_init_upstream(s);
  
          return;
-@@ -1847,6 +1895,7 @@ ngx_stream_proxy_create_srv_conf(ngx_con
+@@ -1584,8 +1632,11 @@ ngx_stream_proxy_process(ngx_stream_sess
+                     }
+                 }
+ 
+-                if (c->type == SOCK_DGRAM && ++u->responses == pscf->responses)
+-                {
++                if (c->type == SOCK_DGRAM && from_upstream) {
++                    u->responses++;
++                }
++
++                if (c->type == SOCK_DGRAM && u->responses == pscf->responses) {
+                     src->read->ready = 0;
+                     src->read->eof = 1;
+                 }
+@@ -1848,6 +1899,7 @@ ngx_stream_proxy_create_srv_conf(ngx_con
      conf->upload_rate = NGX_CONF_UNSET_SIZE;
      conf->download_rate = NGX_CONF_UNSET_SIZE;
      conf->responses = NGX_CONF_UNSET_UINT;
@@ -711,7 +742,7 @@ diff --git a/src/stream/ngx_stream_proxy_module.c b/src/stream/ngx_stream_proxy_
      conf->next_upstream_tries = NGX_CONF_UNSET_UINT;
      conf->next_upstream = NGX_CONF_UNSET;
      conf->proxy_protocol = NGX_CONF_UNSET;
-@@ -1892,6 +1941,9 @@ ngx_stream_proxy_merge_srv_conf(ngx_conf
+@@ -1893,6 +1945,9 @@ ngx_stream_proxy_merge_srv_conf(ngx_conf
      ngx_conf_merge_uint_value(conf->responses,
                                prev->responses, NGX_MAX_INT32_VALUE);
  
@@ -721,7 +752,7 @@ diff --git a/src/stream/ngx_stream_proxy_module.c b/src/stream/ngx_stream_proxy_
      ngx_conf_merge_uint_value(conf->next_upstream_tries,
                                prev->next_upstream_tries, 0);
  
-@@ -2018,6 +2070,34 @@ ngx_stream_proxy_set_ssl(ngx_conf_t *cf,
+@@ -2019,6 +2074,34 @@ ngx_stream_proxy_set_ssl(ngx_conf_t *cf,
      return NGX_OK;
  }
  
@@ -768,16 +799,17 @@ diff --git a/src/stream/ngx_stream_ssl_module.c b/src/stream/ngx_stream_ssl_modu
  static char *ngx_stream_ssl_session_cache(ngx_conf_t *cf, ngx_command_t *cmd,
      void *conf);
  static ngx_int_t ngx_stream_ssl_init(ngx_conf_t *cf);
-@@ -46,6 +48,8 @@ static ngx_conf_bitmask_t  ngx_stream_ss
+@@ -46,6 +48,9 @@ static ngx_conf_bitmask_t  ngx_stream_ss
      { ngx_string("TLSv1.1"), NGX_SSL_TLSv1_1 },
      { ngx_string("TLSv1.2"), NGX_SSL_TLSv1_2 },
      { ngx_string("TLSv1.3"), NGX_SSL_TLSv1_3 },
-+    { ngx_string("DTLSv1"),   NGX_SSL_DTLSv1 },
++    { ngx_string("DTLSv1"), NGX_SSL_DTLSv1 },
 +    { ngx_string("DTLSv1.2"), NGX_SSL_DTLSv1_2 },
++
      { ngx_null_string, 0 }
  };
  
-@@ -105,7 +109,7 @@ static ngx_command_t  ngx_stream_ssl_com
+@@ -105,7 +110,7 @@ static ngx_command_t  ngx_stream_ssl_com
  
      { ngx_string("ssl_protocols"),
        NGX_STREAM_MAIN_CONF|NGX_STREAM_SRV_CONF|NGX_CONF_1MORE,
@@ -786,7 +818,17 @@ diff --git a/src/stream/ngx_stream_ssl_module.c b/src/stream/ngx_stream_ssl_modu
        NGX_STREAM_SRV_CONF_OFFSET,
        offsetof(ngx_stream_ssl_conf_t, protocols),
        &ngx_stream_ssl_protocols },
-@@ -378,6 +382,11 @@ ngx_stream_ssl_init_connection(ngx_ssl_t
+@@ -365,7 +370,8 @@ ngx_stream_ssl_init_connection(ngx_ssl_t
+ 
+     cscf = ngx_stream_get_module_srv_conf(s, ngx_stream_core_module);
+ 
+-    if (cscf->tcp_nodelay && ngx_tcp_nodelay(c) != NGX_OK) {
++    if (c->type == SOCK_STREAM
++        && cscf->tcp_nodelay && ngx_tcp_nodelay(c) != NGX_OK) {
+         return NGX_ERROR;
+     }
+ 
+@@ -389,6 +395,11 @@ ngx_stream_ssl_init_connection(ngx_ssl_t
          return NGX_AGAIN;
      }
  
@@ -798,7 +840,7 @@ diff --git a/src/stream/ngx_stream_ssl_module.c b/src/stream/ngx_stream_ssl_modu
      /* rc == NGX_OK */
  
      return NGX_OK;
-@@ -710,6 +719,33 @@ ngx_stream_ssl_password_file(ngx_conf_t 
+@@ -721,6 +732,33 @@ ngx_stream_ssl_password_file(ngx_conf_t 
  
  
  static char *
@@ -832,7 +874,7 @@ diff --git a/src/stream/ngx_stream_ssl_module.c b/src/stream/ngx_stream_ssl_modu
  ngx_stream_ssl_session_cache(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
  {
      ngx_stream_ssl_conf_t  *scf = conf;
-@@ -824,8 +860,13 @@ invalid:
+@@ -835,8 +873,13 @@ invalid:
  static ngx_int_t
  ngx_stream_ssl_init(ngx_conf_t *cf)
  {
@@ -848,7 +890,7 @@ diff --git a/src/stream/ngx_stream_ssl_module.c b/src/stream/ngx_stream_ssl_modu
  
      cmcf = ngx_stream_conf_get_module_main_conf(cf, ngx_stream_core_module);
  
-@@ -836,5 +877,52 @@ ngx_stream_ssl_init(ngx_conf_t *cf)
+@@ -847,5 +890,52 @@ ngx_stream_ssl_init(ngx_conf_t *cf)
  
      *h = ngx_stream_ssl_handler;
  
