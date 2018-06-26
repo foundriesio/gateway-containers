@@ -1,0 +1,71 @@
+version: '3.2'
+
+networks:
+  gateway-network:
+
+services:
+  mosquitto:
+    image: ${REGISTRY:-opensourcefoundries}/mosquitto:${TAG:-latest}
+    volumes:
+      - ./mosquitto/mgmt.foundries.io.conf:/etc/mosquitto/conf.d/mosquitto.conf
+    read_only: true
+    ports:
+      - "9001:9001"
+      - "1883:1883"
+    networks:
+      - gateway-network
+    restart: always
+
+  nginx-http-proxy:
+    image: ${REGISTRY:-opensourcefoundries}/nginx:${TAG:-latest}
+    volumes:
+      - ./nginx/nginx-http-proxy.conf:/etc/nginx/nginx.conf
+    tmpfs:
+      - /run
+      - /var/run
+      - /var/cache/nginx
+    read_only: true
+    ports:
+      - "8080:8080"
+    networks:
+      - gateway-network
+    restart: always
+
+  bt-joiner:
+    image: ${REGISTRY:-opensourcefoundries}/bt-joiner:${TAG:-latest}
+    tmpfs:
+      - /run
+      - /var/lock
+      - /var/log
+      - /var/run
+    network_mode: "host"
+    restart: always
+    read_only: true
+    privileged: true
+
+  nginx-coap-proxy:
+    image: ${REGISTRY:-opensourcefoundries}/nginx:${TAG:-latest}
+    volumes:
+      - ./nginx/nginx-lwm2m.conf:/etc/nginx/nginx.conf
+    tmpfs:
+      - /run
+      - /var/run
+      - /var/cache/nginx
+    read_only: true
+    ports:
+      - "5683:5683/udp"
+      - "5684:5684/udp"
+      - "5685:5685/udp"
+      - "5686:5686/udp"
+    networks:
+      - gateway-network
+    restart: always
+
+  californium-proxy:
+    image: ${REGISTRY:-opensourcefoundries}/cf-proxy-coap-http:${TAG:-latest}
+    read_only: true
+    ports:
+      - "5682:5682"
+    networks:
+      - gateway-network
+    restart: always
