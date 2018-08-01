@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-SCRIPT_VERSION="1.06"
+SCRIPT_VERSION="1.07"
 
 # logging
 LOG_LEVEL_ERROR=1
@@ -33,7 +33,7 @@ DAEMON_LOCK_PATH="/var/lock/bluetooth_6lowpand.lock"
 MACADDR_REGEX="([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}"
 MACADDR_REGEX_LINE="^${MACADDR_REGEX}$"
 LOGLEVEL_REGEX="^[${LOG_LEVEL_ERROR}-${LOG_LEVEL_VERBOSE_DEBUG}]$"
-BT_NODE_FILTER="Linaro"
+BT_NODE_FILTER_REGEX="(Linaro|IPSP [N|n]ode)"
 
 # defaults
 DEFAULT_HCI_INTERFACE="hci0"
@@ -487,7 +487,7 @@ function find_ipsp_device {
 	fi
 
 	# Lines will start with MAC and then description broken by returns:
-	# Return the first MAC which is followed by BT_NODE_FILTER match
+	# Return the first MAC which is followed by BT_NODE_FILTER_REGEX match
 	__lines=$(pylescan -i ${option_hci_interface} -c -t ${__timeout} -s)
 	if [ "${?}" -ne "0" ]; then
 		write_log ${LOG_LEVEL_ERROR} "ERROR generated during LE scan: ${?}"
@@ -504,7 +504,7 @@ function find_ipsp_device {
 		fi
 
 		if [ "${option_ignore_filter}" -eq "1" ] ||
-		   [ "${__line}" == "${BT_NODE_FILTER}" ]; then
+		   [ echo "${__line}" | grep -q -E "${BT_NODE_FILTER_REGEX}"; then
 			# Store the list of connect devices in upper case surrounded by []
 			connected_list=$(get_connected_list)
 			# check that this node isn't already connected
