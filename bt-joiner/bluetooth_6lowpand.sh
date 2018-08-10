@@ -504,7 +504,7 @@ function find_ipsp_device {
 		fi
 
 		if [ "${option_ignore_filter}" -eq "1" ] ||
-		   [ echo "${__line}" | grep -q -E "${BT_NODE_FILTER_REGEX}"; then
+		   [ echo "${__line}" | grep -q -E "${BT_NODE_FILTER_REGEX}" ]; then
 			# Store the list of connect devices in upper case surrounded by []
 			connected_list=$(get_connected_list)
 			# check that this node isn't already connected
