@@ -512,39 +512,39 @@ function find_ipsp_device {
 			fi
 		fi
 
-			# Store the list of connect devices in upper case surrounded by []
-			connected_list=$(get_connected_list)
-			# check that this node isn't already connected
-			if [[ "${connected_list}" == *"[${__found_devices}]"* ]]; then
-				write_log ${LOG_LEVEL_VERBOSE_DEBUG} "ALREADY CONNECTED: ${__found_devices}"
-				continue
-			fi
+		# Store the list of connect devices in upper case surrounded by []
+		connected_list=$(get_connected_list)
+		# check that this node isn't already connected
+		if [[ "${connected_list}" == *"[${__found_devices}]"* ]]; then
+			write_log ${LOG_LEVEL_VERBOSE_DEBUG} "ALREADY CONNECTED: ${__found_devices}"
+			continue
+		fi
 
-			# check if max devices are already connected, if so abort connect loop
-			__count_devices=$(count_connected_devices "${connected_list}")
-			if [ "${__count_devices}" -ge "${option_max_devices}" ]; then
-				write_log ${LOG_LEVEL_DEBUG} "MAX DEVICES CONNECTED (${__count_devices}) -- STOP ADDING"
-				break
-			fi
+		# check if max devices are already connected, if so abort connect loop
+		__count_devices=$(count_connected_devices "${connected_list}")
+		if [ "${__count_devices}" -ge "${option_max_devices}" ]; then
+			write_log ${LOG_LEVEL_DEBUG} "MAX DEVICES CONNECTED (${__count_devices}) -- STOP ADDING"
+			break
+		fi
 
-			# check whitelist
-			if [ "${option_use_whitelist}" -eq "1" ] &&
-			   [ "$(conf_check_pattern "WL=${__found_devices}")" -ne "1" ]; then
-				write_log ${LOG_LEVEL_DEBUG} "IGNORING NODE (WL): ${__found_devices}"
-				continue
-			fi
+		# check whitelist
+		if [ "${option_use_whitelist}" -eq "1" ] &&
+		   [ "$(conf_check_pattern "WL=${__found_devices}")" -ne "1" ]; then
+			write_log ${LOG_LEVEL_DEBUG} "IGNORING NODE (WL): ${__found_devices}"
+			continue
+		fi
 
-			# check blacklist
-			if [ "$(conf_check_pattern "BL=${__found_devices}")" -eq "1" ]; then
-				write_log ${LOG_LEVEL_DEBUG} "IGNORING NODE (BL): ${__found_devices}"
-				continue
-			fi
+		# check blacklist
+		if [ "$(conf_check_pattern "BL=${__found_devices}")" -eq "1" ]; then
+			write_log ${LOG_LEVEL_DEBUG} "IGNORING NODE (BL): ${__found_devices}"
+			continue
+		fi
 
-			write_log ${LOG_LEVEL_INFO} "FOUND NODE: ${__found_devices}"
-			connect_device ${__found_devices} 1
+		write_log ${LOG_LEVEL_INFO} "FOUND NODE: ${__found_devices}"
+		connect_device ${__found_devices} 1
 
-			# BUGFIX: waiting before continuing avoids a crash in 6lowpan
-			sleep ${option_join_delay}
+		# BUGFIX: waiting before continuing avoids a crash in 6lowpan
+		sleep ${option_join_delay}
 	done
 
 	# Restore separator
