@@ -473,9 +473,6 @@ function count_connected_devices {
 function find_ipsp_device {
 	local __timeout=${1}
 	local __found_devices
-	local __pid=0
-	local __check_pid=0
-	local __found_mac=0
 
 	# Store the list of connect devices in upper case surrounded by []
 	connected_list=$(get_connected_list)
