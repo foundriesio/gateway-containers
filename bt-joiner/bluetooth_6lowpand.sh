@@ -490,18 +490,28 @@ function find_ipsp_device {
 		write_log ${LOG_LEVEL_ERROR} "ERROR generated during LE scan: ${?}"
 		exit 1
 	fi
+
+	# Save separator
+	OLDIFS="${IFS}"
+	# Set newline as the separator used by for loop
+	IFS=$'\n'
+
 	for __line in ${__lines}; do
-		if echo "${__line}" | grep -q -E "${MACADDR_REGEX_LINE}"; then
-			__found_devices=${__line}
+		# Check for MAC address as the beginning of the line
+		echo "${__line}" | grep -q -E "^${MACADDR_REGEX}"
+		if [ "${?}" -ne "0" ]; then
 			continue
 		fi
 
-		if [ -z "${__found_devices}" ]; then
-			continue
+		# Save the MAC address
+		__found_devices=$(echo "${__line}" | cut -f1 -d" ")
+		if [ "${option_ignore_filter}" -ne "1" ]; then
+			echo "${__line}" | cut -f2- -d" " | grep -q -E "${BT_NODE_FILTER_REGEX}"
+			if [ "${?}" -ne "0" ]; then
+				continue
+			fi
 		fi
 
-		if [ "${option_ignore_filter}" -eq "1" ] ||
-		   [ $(echo "${__line}" | grep -q -E "${BT_NODE_FILTER_REGEX}"; echo "${?}") -eq "0" ]; then
 			# Store the list of connect devices in upper case surrounded by []
 			connected_list=$(get_connected_list)
 			# check that this node isn't already connected
@@ -535,10 +545,10 @@ function find_ipsp_device {
 
 			# BUGFIX: waiting before continuing avoids a crash in 6lowpan
 			sleep ${option_join_delay}
-		fi
-
-		__found_devices=""
 	done
+
+	# Restore separator
+	IFS="${OLDIFS}"
 }
 
 # ENTER daemon loop to connect Linaro FOTA BT devices
