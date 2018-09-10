@@ -23,8 +23,7 @@ git clone git clone https://source.foundries.io/gateway-containers
 cd gateway-containers
 
 # Log into hub.foundries.io
-docker login hub.foundries.io
-username: notused
+docker login -u notused hub.foundries.io
 passsword: subscriber APP Token from https://foundries.io/settings/tokens/
 
 # Run docker-compose, bring up all containers as daemons
