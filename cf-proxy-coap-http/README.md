@@ -1,19 +1,9 @@
-# Californium CoAP-HTTP Proxy
+Eclipse Californium is a Java implementation of RFC7252 - Constrained Application Protocol for IoT Cloud services. Thus, the focus is on scalability and usability instead of resource-efficiency like for embedded devices. Yet Californium is also suitable for embedded JVMs.
 
-## Build the container
+More information can be found at http://www.eclipse.org/californium/ and http://coap.technology/.
 
-```
-docker build -t cf-proxy-coap-http --force-rm -f Dockerfile .
-```
-
-## Run the container
+## How to use this image
 
 ```
-docker run --restart=always -d -t --net=host --read-only --name cf-proxy-coap-http cf-proxy-coap-http
-```
-
-## Run the pre-built container
-
-```
-docker run --restart=always -d -t --net=host --read-only --name cf-proxy-coap-http opensourcefoundries/cf-proxy-coap-http:latest
+docker run -p5682:5682 hub.foundries.io/cf-proxy-coap-http
 ```

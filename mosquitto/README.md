@@ -1,49 +1,36 @@
-# Mosquitto for MQTT
+Eclipse Mosquitto is an open source implementation of a server for version 3.1 and 3.1.1 of the MQTT protocol.
+Main homepage: http://mosquitto.org/.
 
-## Build the container
+![logo](https://raw.githubusercontent.com/docker-library/docs/543ed10ed132af12c3662c7a04010d3f36538094/eclipse-mosquitto/logo.png)
 
-```
-docker build -t mosquitto --force-rm -f Dockerfile .
-```
-
-## Run the container
+## How to use this image
 
 Create a local mosquitto config file with generic credentials and relevant channel info:
 
 ```
-connection #connection-name
-address #url:#port
-remote_username #username
-remote_password #password
+log_dest stdout
+
+connection_messages true
+listener 1883
+
+#enable anonymous websockets connections
+listener 9001
+protocol websockets
+
+connection foundries
+address mgmt.foundries.io:18830
+
 try_private false
 start_type automatic
 bridge_attempt_unsubscribe false
 notifications false
-connection_messages true
-log_dest stdout
 
-# Device management subscriptions
-topic iotdm-1/type/+/id/# in 1 "" ""
-
-# Gateway notifications
-topic iot-2/type/+/id/+/notify in 1 "" ""
-
-# Commands and events
-topic iot-2/type/+/id/+/cmd/+/fmt/+ in "" ""
-topic iot-2/type/+/id/+/evt/+/fmt/+ out "" ""
-
-# Device management publications
-topic iotdevice-1/type/+/id/# out 1 "" ""
+# Sensor notifications from the device.
+topic id/+/sensor-data/+ out "" ""
 ```
 
 Then run the containiner volume mounting your mosquitto config file:
 
 ```
-docker run --restart=always -d -t --net=host --read-only -v /path/to/mosquitto.conf:/etc/mosquitto/conf.d/mosquitto.conf --name mosquitto mosquitto
-```
-
-## Run the pre-built container
-
-```
-docker run --restart=always -d -t --net=host --read-only -v /path/to/mosquitto.conf:/etc/mosquitto/conf.d/mosquitto.conf --name mosquitto opensourcefoundries/mosquitto:latest
+docker run -p9001:9001 -p1883:1883 -v /path/to/mosquitto.conf:/etc/mosquitto/conf.d/mosquitto.conf hub.foundries.io/mosquitto
 ```
