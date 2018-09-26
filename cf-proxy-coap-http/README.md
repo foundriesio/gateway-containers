@@ -5,5 +5,5 @@ More information can be found at http://www.eclipse.org/californium/ and http://
 ## How to use this image
 
 ```
-docker run -p5682:5682 hub.foundries.io/cf-proxy-coap-http
+docker run -p 5682:5682/udp hub.foundries.io/cf-proxy-coap-http
 ```
