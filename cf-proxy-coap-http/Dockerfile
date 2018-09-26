@@ -1,4 +1,4 @@
-FROM opensourcefoundries/alpine:edge
+FROM alpine:latest
 
 RUN apk add --no-cache wget openjdk8-jre-base ca-certificates
 
