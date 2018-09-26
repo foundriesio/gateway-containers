@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-RUN apk add --no-cache wget openjdk8-jre-base ca-certificates
+RUN apk add --no-cache openjdk8-jre-base
 
 RUN mkdir -p /opt/cf-proxy
 COPY Californium.properties /opt/cf-proxy
