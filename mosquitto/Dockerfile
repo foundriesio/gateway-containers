@@ -1,4 +1,4 @@
-FROM opensourcefoundries/alpine:edge
+FROM alpine:edge
 
 RUN apk add --no-cache ca-certificates mosquitto
 
