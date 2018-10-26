@@ -1,22 +1,10 @@
-# Open Source Foundries IoT Gateway Containers
+# Foundries IoT Gateway Containers
 
 ## docker-compose Quick Start
 
 To quickly configure your a device running the Linux microPlatform as an IoT gateway that communicates with our demonstration servers located at https://mgmt.foundries.io, you can use the included docker-compose file.
 
 Usage:
-To use the public docker images at Docker hub:
-
-```
-# First, ssh to the target system and get the source
-git clone https://github.com/opensourcefoundries/gateway-containers
-cd gateway-containers
-
-# Run docker-compose, bring up all containers as daemons
-docker-compose up -d
-```
-
-OSF Subscribers may wish to pull the latest containers
 ```
 # First, ssh to the target system and get the source
 git clone git clone https://source.foundries.io/gateway-containers
@@ -27,14 +15,14 @@ docker login -u notused hub.foundries.io
 passsword: subscriber APP Token from https://foundries.io/settings/tokens/
 
 # Run docker-compose, bring up all containers as daemons
-REGISTRY=hub.foundries.io docker-compose up -d
+docker-compose up -d
 ```
 
 **Note:** The docker-compose.yml file also allows the use of a `TAG` variable
 to reference that version of the container to be used by docker-compose.
 The `TAG` coincides with the microPlatform update number, such as 0.22 or 0.23.
 
-To view all of the available tags for the nginx container browse to: https://hub.docker.com/r/opensourcefoundries/nginx/tags/.
+To view all of the available tags for the nginx container browse to: https://hub.foundries.io/nginx.html
 
 ```
 # Use the TAG variable to load an older version of the containers

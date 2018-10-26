@@ -5,7 +5,7 @@ networks:
 
 services:
   mosquitto:
-    image: ${REGISTRY:-opensourcefoundries}/mosquitto:${TAG:-latest}
+    image: ${REGISTRY:-hub.foundries.io}/mosquitto:${TAG:-latest}
     volumes:
       - ./mosquitto/mgmt.foundries.io.conf:/etc/mosquitto/conf.d/mosquitto.conf
     read_only: true
@@ -17,7 +17,7 @@ services:
     restart: always
 
   nginx-http-proxy:
-    image: ${REGISTRY:-opensourcefoundries}/nginx:${TAG:-latest}
+    image: ${REGISTRY:-hub.foundries.io}/nginx:${TAG:-latest}
     volumes:
       - ./nginx/nginx-http-proxy.conf:/etc/nginx/nginx.conf
     tmpfs:
@@ -32,7 +32,7 @@ services:
     restart: always
 
   bt-joiner:
-    image: ${REGISTRY:-opensourcefoundries}/bt-joiner:${TAG:-latest}
+    image: ${REGISTRY:-hub.foundries.io}/bt-joiner:${TAG:-latest}
     tmpfs:
       - /run
       - /var/lock
@@ -44,7 +44,7 @@ services:
     privileged: true
 
   nginx-coap-proxy:
-    image: ${REGISTRY:-opensourcefoundries}/nginx:${TAG:-latest}
+    image: ${REGISTRY:-hub.foundries.io}/nginx:${TAG:-latest}
     volumes:
       - ./nginx/nginx-lwm2m.conf:/etc/nginx/nginx.conf
     tmpfs:
@@ -62,7 +62,7 @@ services:
     restart: always
 
   californium-proxy:
-    image: ${REGISTRY:-opensourcefoundries}/cf-proxy-coap-http:${TAG:-latest}
+    image: ${REGISTRY:-hub.foundries.io}/cf-proxy-coap-http:${TAG:-latest}
     read_only: true
     ports:
       - "5682:5682"
