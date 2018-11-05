@@ -33,6 +33,10 @@ services:
 
   bt-joiner:
     image: ${REGISTRY:-hub.foundries.io}/bt-joiner:${TAG:-latest}
+    volumes:
+      - ./bt-joiner-config:/bt-joiner-config
+    environment:
+      CONFIG_PATH: /bt-joiner-config/bluetooth_6lowpand.conf
     tmpfs:
       - /run
       - /var/lock

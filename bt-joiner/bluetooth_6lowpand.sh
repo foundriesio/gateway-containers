@@ -29,7 +29,7 @@ LOG_LEVEL_VERBOSE_DEBUG=5
 # constants
 CONTROLLER_PATH="/sys/kernel/debug/bluetooth/6lowpan_control"
 CONFIG_FILE_DELIMITER="="
-CONFIG_PATH="/etc/bluetooth/bluetooth_6lowpand.conf"
+CONFIG_PATH="${CONFIG_PATH-/etc/bluetooth/bluetooth_6lowpand.conf}"
 DAEMON_LOCK_PATH="/var/lock/bluetooth_6lowpand.lock"
 MACADDR_REGEX="([a-fA-F0-9]{2}:){5}[a-fA-F0-9]{2}"
 MACADDR_REGEX_LINE="^${MACADDR_REGEX}$"
