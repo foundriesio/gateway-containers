@@ -1,4 +1,4 @@
-FROM alpine:3.7
+FROM alpine:latest
 
 RUN apk add --no-cache bluez bluez-btmon bluez-deprecated bluez-meshctl py-dbus py-gobject3
 
