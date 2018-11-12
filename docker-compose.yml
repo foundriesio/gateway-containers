@@ -69,7 +69,7 @@ services:
     image: ${REGISTRY:-hub.foundries.io}/cf-proxy-coap-http:${TAG:-latest}
     read_only: true
     ports:
-      - "5682:5682"
+      - "5682:5682/udp"
     networks:
       - gateway-network
     restart: always
