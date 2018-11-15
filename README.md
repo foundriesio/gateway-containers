@@ -7,7 +7,7 @@ To quickly configure your a device running the Linux microPlatform as an IoT gat
 Usage:
 ```
 # First, ssh to the target system and get the source
-git clone git clone https://source.foundries.io/gateway-containers
+git clone https://source.foundries.io/gateway-containers
 cd gateway-containers
 
 # Log into hub.foundries.io
