@@ -1,0 +1,9 @@
+version: '3.2'
+
+services:
+  mosquitto:
+    extra_hosts:
+      - "mgmt.foundries.io:${MGMT_SERVER}"
+  nginx-http-proxy:
+    extra_hosts:
+      - "mgmt.foundries.io:${MGMT_SERVER}"
