@@ -1,0 +1,49 @@
+version: '3.2'
+
+networks:
+  gateway-network:
+
+services:
+  bt-joiner:
+    image: ${REGISTRY:-hub.foundries.io}/bt-joiner:${TAG:-latest}
+    volumes:
+      - ./bt-joiner-config:/bt-joiner-config
+    environment:
+      CONFIG_PATH: /bt-joiner-config/bluetooth_6lowpand.conf
+    tmpfs:
+      - /run
+      - /var/lock
+      - /var/log
+      - /var/run
+    network_mode: "host"
+    restart: always
+    read_only: true
+    privileged: true
+
+  mosquitto:
+    image: ${REGISTRY:-hub.foundries.io}/mosquitto:${TAG:-latest}
+    volumes:
+      - ./mosquitto/mgmt.foundries.io.conf:/etc/mosquitto/conf.d/mosquitto.conf
+    read_only: true
+    ports:
+      - "9001:9001"
+      - "1883:1883"
+    networks:
+      - gateway-network
+    restart: always
+
+  nginx-http-proxy:
+    image: ${REGISTRY:-hub.foundries.io}/nginx:${TAG:-latest}
+    volumes:
+      - ./nginx/nginx-http-proxy.conf:/etc/nginx/nginx.conf
+    tmpfs:
+      - /run
+      - /var/run
+      - /var/cache/nginx
+    read_only: true
+    ports:
+      - "8080:8080"
+    networks:
+      - gateway-network
+    restart: always
+
