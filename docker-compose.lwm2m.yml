@@ -1,0 +1,48 @@
+version: '3.2'
+
+networks:
+  gateway-network:
+
+services:
+  bt-joiner:
+    image: ${REGISTRY:-hub.foundries.io}/bt-joiner:${TAG:-latest}
+    volumes:
+      - ./bt-joiner-config:/bt-joiner-config
+    environment:
+      CONFIG_PATH: /bt-joiner-config/bluetooth_6lowpand.conf
+    tmpfs:
+      - /run
+      - /var/lock
+      - /var/log
+      - /var/run
+    network_mode: "host"
+    restart: always
+    read_only: true
+    privileged: true
+
+  nginx-coap-proxy:
+    image: ${REGISTRY:-hub.foundries.io}/nginx:${TAG:-latest}
+    volumes:
+      - ./nginx/nginx-lwm2m.conf:/etc/nginx/nginx.conf
+    tmpfs:
+      - /run
+      - /var/run
+      - /var/cache/nginx
+    read_only: true
+    ports:
+      - "5683:5683/udp"
+      - "5684:5684/udp"
+      - "5685:5685/udp"
+      - "5686:5686/udp"
+    networks:
+      - gateway-network
+    restart: always
+
+  californium-proxy:
+    image: ${REGISTRY:-hub.foundries.io}/cf-proxy-coap-http:${TAG:-latest}
+    read_only: true
+    ports:
+      - "5682:5682/udp"
+    networks:
+      - gateway-network
+    restart: always
