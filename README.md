@@ -1,8 +1,10 @@
 # Foundries IoT Gateway Containers
 
-## docker-compose Quick Start
+## Docker Compose Quick Start
 
-To quickly configure your a device running the Linux microPlatform as an IoT gateway that communicates with our demonstration servers located at https://mgmt.foundries.io, you can use the included docker-compose file.
+To quickly configure your a device running the Linux microPlatform as an IoT
+gateway that communicates with our demonstration servers located at
+https://mgmt.foundries.io, you can use the included docker-compose files.
 
 Usage:
 ```
@@ -15,10 +17,10 @@ docker login -u notused hub.foundries.io
 passsword: subscriber APP Token from https://foundries.io/settings/tokens/
 
 # Run docker-compose, bring up all containers as daemons
-docker-compose up -d
+docker-compose -f docker-compose.lwm2m.yml -f docker-compose.hawkbit.yml up -d
 ```
 
-**Note:** The docker-compose.yml file also allows the use of a `TAG` variable
+**Note:** Both `docker-compose.yml` files also allow the use of a `TAG` variable
 to reference that version of the container to be used by docker-compose.
 The `TAG` coincides with the microPlatform update number, such as 0.22 or 0.23.
 
@@ -26,10 +28,46 @@ To view all of the available tags for the nginx container browse to: https://hub
 
 ```
 # Use the TAG variable to load an older version of the containers
-TAG=0.21 docker-compose up
+TAG=0.21 docker-compose -f docker-compose.lwm2m.yml -f docker-compose.hawkbit.yml up -d
 ```
 
-# Brief container descriptions
+## LWM2M Specific Containers
+
+To configure your Linux microPlatform device as a LWM2M IoT gateway only,
+use the compose file `docker-compose.lwm2m.yml` when running docker-compose:
+
+```
+docker-compose -f docker-compose.lwm2m.yml up -d
+```
+
+### Using Local Leshan Server
+
+To proxy the LWM2M based connections to another server (instead of `mgmt.foundries.io`),
+use the compose override file `docker-compose.lwm2m.local.yml`:
+
+```
+MGMT_SERVER="192.168.1.1" docker-compose -f docker-compose.lwm2m.yml -f docker-compose.lwm2m.local.yml up -d
+```
+
+## hawkBit/MQTT Specific Containers
+
+To configure your Linux microPlatform device as a hawkBit/MQTT IoT gateway only,
+use the compose file `docker-compose.hawkbit.yml` when running docker-compose:
+
+```
+docker-compose -f docker-compose.hawkbit.yml up -d
+```
+
+### Using Local hawkBit Server
+
+To proxy the HTTP/hawkBit/MQTT based connections to another server (instead of `mgmt.foundries.io`),
+use the compose override file `docker-compose.hawkbit.local.yml`:
+
+```
+MGMT_SERVER="192.168.1.1" docker-compose -f docker-compose.hawkbit.yml -f docker-compose.hawkbit.local.yml up -d
+```
+
+## Brief container descriptions
 
 ### bt-joiner, a Bluetooth LE / 6LoWPAN joining script
 
