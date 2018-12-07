@@ -7,6 +7,7 @@ COPY Californium.properties /opt/cf-proxy
 COPY ProxyMapping.properties /opt/cf-proxy
 COPY Proxy.properties /opt/cf-proxy
 COPY cf-proxy-2.0.0-SNAPSHOT.jar /opt/cf-proxy
+COPY test.sh /test.sh
 
 EXPOSE 5682
 
