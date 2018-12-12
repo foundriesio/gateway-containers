@@ -9,12 +9,8 @@ https://mgmt.foundries.io, you can use the included docker-compose files.
 Usage:
 ```
 # First, ssh to the target system and get the source
-git clone https://source.foundries.io/gateway-containers
+git clone https://github.com/foundriesio/gateway-containers
 cd gateway-containers
-
-# Log into hub.foundries.io
-docker login -u notused hub.foundries.io
-passsword: subscriber APP Token from https://foundries.io/settings/tokens/
 
 # Run docker-compose, bring up all containers as daemons
 docker-compose -f docker-compose.lwm2m.yml -f docker-compose.hawkbit.yml up -d
