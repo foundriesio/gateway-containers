@@ -1,0 +1,26 @@
+options {
+	directory "/var/bind";
+	dnssec-validation auto;
+	auth-nxdomain no;
+
+	forward only;
+	forwarders { %FORWARDER_LIST%; };
+
+	allow-query { any; };
+
+	# Listening on IPv6 is off by default.
+	listen-on-v6 { any; };
+
+	dns64 %NAT64_PREFIX% {
+		exclude { any; };
+		clients { any; };
+	};
+
+	response-policy { zone "rpz"; };
+};
+
+zone "rpz" {
+	type master;
+	file "db.rpz";
+	notify yes;
+};
