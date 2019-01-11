@@ -1,0 +1,14 @@
+interface %RADVD_INTERFACE%
+{
+	AdvSendAdvert on;
+	AdvSourceLLAddress off;
+	IgnoreIfMissing on;
+	AdvRASrcAddress	{ %RADVD_PREFIX%1; };
+	%RADVD_RDNSS%
+
+	prefix %RADVD_PREFIX%/%RADVD_MASK%
+	{
+		AdvOnLink on;
+		AdvRouterAddr on;
+	};
+};
