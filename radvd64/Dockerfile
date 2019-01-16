@@ -20,7 +20,7 @@ LABEL maintainer="Michael Scott <mike@foundries.io>"
 RUN apk add --no-cache radvd dbus
 
 COPY radvd.conf.template /etc/radvd.conf.template
-
+COPY test.sh /test.sh
 COPY interface-monitor.sh interface-monitor.sh
 COPY start.sh start.sh
 
