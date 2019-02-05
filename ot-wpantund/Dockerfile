@@ -47,7 +47,7 @@ RUN cd ~/ && \
 	cd ~/src && \
 	git clone --recursive https://github.com/openthread/borderrouter && \
 	cd borderrouter && \
-	git reset --hard d5e570e742146cb4e9ffdb3721d14b1d47878c65 && \
+	git reset --hard f42c113f3bce40b7b0066af405b99fcf09f7c98c && \
 	./bootstrap && \
 	./configure && \
 	make && \
