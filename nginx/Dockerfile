@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.8
 
 # Based on https://github.com/nginxinc/docker-nginx/tree/master/mainline/alpine
 # Includes one additional patch for experimental DTLS support
