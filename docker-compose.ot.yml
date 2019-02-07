@@ -1,0 +1,39 @@
+version: '3.2'
+
+services:
+  dns64:
+    image: ${REGISTRY:-hub.foundries.io}/dns64:${TAG:-latest}
+    tmpfs:
+      - /run
+      - /var/lock
+      - /var/log
+      - /var/run
+    ports:
+      - "53:53/udp"
+    network_mode: "host"
+    restart: always
+    read_only: true
+
+  tayga:
+    image: ${REGISTRY:-hub.foundries.io}/nat64-tayga:${TAG:-latest}
+    tmpfs:
+      - /run
+      - /var/lock
+      - /var/log
+      - /var/run
+    network_mode: "host"
+    restart: always
+    read_only: true
+    privileged: true
+
+  ot-wpantund:
+    image: ${REGISTRY:-hub.foundries.io}/ot-wpantund:${TAG:-latest}
+    tmpfs:
+      - /run
+      - /var/lock
+      - /var/log
+      - /var/run
+    network_mode: "host"
+    restart: always
+    read_only: true
+    privileged: true
