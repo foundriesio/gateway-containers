@@ -42,6 +42,7 @@ RUN mkdir -p ~/src && \
 	make && \
 	make install
 
+ENV CXXFLAGS="-Wno-error"
 # make border router / pskc tool
 RUN cd ~/ && \
 	cd ~/src && \
