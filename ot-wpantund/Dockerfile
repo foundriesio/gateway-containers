@@ -49,7 +49,7 @@ RUN cd ~/ && \
 	cd borderrouter && \
 	git reset --hard f42c113f3bce40b7b0066af405b99fcf09f7c98c && \
 	./bootstrap && \
-	./configure && \
+	CXXFLAGS='-g -O2 -Wall -Wextra -Wshadow -std=gnu++98 -Wno-c++14-compat' ./configure && \
 	make && \
 	cp tools/pskc /usr/local/sbin/
 
