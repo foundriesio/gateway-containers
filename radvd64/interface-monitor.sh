@@ -21,21 +21,19 @@ RADVD_MASK="$3"
 
 function iface_setup()
 {
-	echo "[IM] interface: ${RADVD_INTERFACE} add IPv6 address: ${RADVD_PREFIX}1"
-	ip addr add "${RADVD_PREFIX}1" dev "${RADVD_INTERFACE}"
-	echo "[IM] interface: ${RADVD_INTERFACE} add route: ${RADVD_PREFIX}/${RADVD_MASK}"
-	ip -6 route add "${RADVD_PREFIX}/${RADVD_MASK}" dev "${RADVD_INTERFACE}"
+	# check IP
+	ip -6 address show dev "${RADVD_INTERFACE}" | grep -q "${RADVD_PREFIX}1/${RADVD_MASK}"
+	if [ $? -ne 0 ]; then
+		echo "[IM] interface: ${RADVD_INTERFACE} add IPv6 address: ${RADVD_PREFIX}1"
+		ip addr add "${RADVD_PREFIX}1/${RADVD_MASK}" dev "${RADVD_INTERFACE}"
+	fi
 }
 
 function iface_monitor()
 {
 	# if interface already exists assign IPv6 prefix and route to interface
 	if [ -e /sys/class/net/${RADVD_INTERFACE} ]; then
-		ip -6 address show dev ${RADVD_INTERFACE} | grep -q ${RADVD_PREFIX}
-		if [ $? -ne 0 ]; then
-			echo "[IM] interface: ${RADVD_INTERFACE} is UP w/o prefix"
-			iface_setup
-		fi
+		iface_setup
 	fi
 
 	dbus-monitor --system "type='signal',path='/org/freedesktop/systemd1',member=UnitNew" |
