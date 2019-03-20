@@ -4,6 +4,35 @@ networks:
   gateway-network:
 
 services:
+  radvd64-bt0:
+    image: ${REGISTRY:-hub.foundries.io}/radvd64:${TAG:-latest}
+    tmpfs:
+      - /run
+      - /var/lock
+      - /var/log
+      - /var/run
+    command: "--interface bt0 --ipv6-prefix \"fd11:11::\" --ipv6-mask 64"
+    network_mode: "host"
+    restart: always
+    read_only: true
+    privileged: true
+
+  iface-mon-bt0:
+    image: ${REGISTRY:-hub.foundries.io}/iface-monitor:${TAG:-latest}
+    tmpfs:
+      - /run
+      - /var/lock
+      - /var/log
+      - /var/run
+    volumes:
+      - /var/run/dbus:/var/dbus
+    command: "--interface bt0 --ip \"fd11:11::1/64\""
+    network_mode: "host"
+    restart: always
+    read_only: true
+    privileged: true
+    tty: true
+
   bt-joiner:
     image: ${REGISTRY:-hub.foundries.io}/bt-joiner:${TAG:-latest}
     volumes:
@@ -15,28 +44,34 @@ services:
       - /var/lock
       - /var/log
       - /var/run
+    depends_on:
+      - radvd64-bt0
+      - iface-mon-bt0
     network_mode: "host"
     restart: always
     read_only: true
     privileged: true
 
-  nginx-coap-proxy:
-    image: ${REGISTRY:-hub.foundries.io}/nginx:${TAG:-latest}
-    volumes:
-      - ./nginx/nginx-lwm2m.conf:/etc/nginx/nginx.conf
+  dns64:
+    image: ${REGISTRY:-hub.foundries.io}/dns64:${TAG:-latest}
     tmpfs:
       - /run
+      - /var/lock
+      - /var/log
       - /var/run
-      - /var/cache/nginx
-    read_only: true
-    ports:
-      - "5683:5683/udp"
-      - "5684:5684/udp"
-      - "5685:5685/udp"
-      - "5686:5686/udp"
-    networks:
-      - gateway-network
+      - /var/bind
+    network_mode: "host"
     restart: always
+    read_only: true
+
+  jool:
+    image: ${REGISTRY:-hub.foundries.io}/nat64-jool:${TAG:-latest}
+    volumes:
+      - /lib/modules:/lib/modules
+    network_mode: "host"
+    restart: always
+    read_only: true
+    privileged: true
 
   californium-proxy:
     image: ${REGISTRY:-hub.foundries.io}/cf-proxy-coap-http:${TAG:-latest}
