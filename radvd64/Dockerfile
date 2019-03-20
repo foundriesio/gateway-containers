@@ -17,14 +17,10 @@ FROM alpine:latest
 
 LABEL maintainer="Michael Scott <mike@foundries.io>"
 
-RUN apk add --no-cache radvd dbus
+RUN apk add --no-cache radvd
 
 COPY radvd.conf.template /etc/radvd.conf.template
 COPY test.sh /test.sh
-COPY interface-monitor.sh interface-monitor.sh
 COPY start.sh start.sh
-
-# Make a dbus dir for volume mount / symlink
-RUN mkdir -p /var/dbus
 
 ENTRYPOINT ["/start.sh"]

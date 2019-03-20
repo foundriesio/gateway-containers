@@ -22,7 +22,6 @@ RADVD_INTERFACE="bt0"
 RADVD_PREFIX="fd11:11::"
 RADVD_MASK=64
 RADVD_RDNSS=false
-INTERFACE_TRIGGER=true
 
 function parse_args()
 {
@@ -48,10 +47,6 @@ function parse_args()
             RADVD_RDNSS=true
             shift
             ;;
-        --disable-interface-trigger)
-            INTERFACE_TRIGGER=false
-            shift
-            ;;
         *)
             shift
             ;;
@@ -60,9 +55,6 @@ function parse_args()
 }
 
 parse_args "$@"
-
-# Make dbus symlink
-ln -s /var/dbus /var/run/dbus
 
 # Create working copy of radvd.conf.template
 cp ${RADVD_CONF_TEMPLATE} ${RADVD_CONF_USE}
@@ -73,11 +65,6 @@ if [ "${RADVD_RDNSS}" == "true" ]; then
 	sed -i -e "s/%RADVD_RDNSS%/RDNSS ${RADVD_PREFIX} { };/g" ${RADVD_CONF_USE}
 else
 	sed -i -e "s/%RADVD_RDNSS%//g" ${RADVD_CONF_USE}
-fi
-
-if [ "${INTERFACE_TRIGGER}" == "true" ]; then
-	# Spawn interface up watcher
-	/interface-monitor.sh ${RADVD_INTERFACE} ${RADVD_PREFIX} ${RADVD_MASK} &
 fi
 
 # Run RADVD
