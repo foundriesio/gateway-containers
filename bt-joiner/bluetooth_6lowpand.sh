@@ -127,10 +127,14 @@ function conf_add_entry {
 # params:
 #   1: matching pattern to remove
 function conf_remove_entry {
-	# TODO: handle escape chars like "/"
-	cmd="sed -i '/^${@}/d' ${CONFIG_PATH}"
-	eval ${cmd}
-	echo "${?}"
+	if [ -e "${CONFIG_PATH}" ]; then
+		# TODO: handle escape chars like "/"
+		cmd="sed -i '/^${@}/d' ${CONFIG_PATH}"
+		eval ${cmd}
+		echo "${?}"
+	else
+		echo "0"
+	fi
 }
 
 function print_help {
