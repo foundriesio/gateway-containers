@@ -10,7 +10,6 @@ services:
       - /run
       - /var/lock
       - /var/log
-      - /var/run
     command: "--interface bt0 --ipv6-prefix \"fd11:11::\" --ipv6-mask 64"
     network_mode: "host"
     restart: always
@@ -23,7 +22,6 @@ services:
       - /run
       - /var/lock
       - /var/log
-      - /var/run
     volumes:
       - /var/run/dbus:/var/dbus
     command: "--interface bt0 --ip \"fd11:11::1/64\""
@@ -43,7 +41,6 @@ services:
       - /run
       - /var/lock
       - /var/log
-      - /var/run
     depends_on:
       - radvd64-bt0
       - iface-mon-bt0
@@ -58,7 +55,6 @@ services:
       - /run
       - /var/lock
       - /var/log
-      - /var/run
       - /var/bind
     network_mode: "host"
     restart: always
