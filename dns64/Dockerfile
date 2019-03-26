@@ -23,7 +23,7 @@ COPY named.conf.template /etc/bind/named.conf.template
 COPY db.rpz.template /etc/bind/db.rpz.template
 COPY start.sh start.sh
 
-EXPOSE 53
+EXPOSE 53/udp
 
 WORKDIR /var/bind
 
