@@ -69,7 +69,12 @@ function conf_find_value {
 			echo "${2}"
 		fi
 	else
-		echo "${2}"
+		value=$(eval echo \$BTCONFIG_$1)
+		if [ -n "$value" ] ; then
+			echo $value
+		else
+			echo "${2}"
+		fi
 	fi
 }
 
@@ -87,7 +92,14 @@ function conf_check_pattern {
 			echo "0"
 		fi
 	else
-		echo "0"
+		varname=$(echo $@ | cut -d= -f1)
+		value=$(eval echo \$BTCONFIG_$varname)
+		echo $varname=$value | grep -q "^${@}"
+		if [ "${?}" -eq "0" ]; then
+			echo "1"
+		else
+			echo "0"
+		fi
 	fi
 }
 
@@ -534,7 +546,7 @@ function find_ipsp_device {
 
 		# check whitelist
 		if [ "${option_use_whitelist}" -eq "1" ] &&
-		   [ "$(conf_check_pattern "WL=${__found_devices}")" -ne "1" ]; then
+		   [ "$(conf_check_pattern "WL=.*${__found_devices}")" -ne "1" ]; then
 			write_log ${LOG_LEVEL_DEBUG} "IGNORING NODE (WL): ${__found_devices}"
 			continue
 		fi
