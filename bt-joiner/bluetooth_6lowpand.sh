@@ -69,9 +69,9 @@ function conf_find_value {
 			echo "${2}"
 		fi
 	else
-		value=$(eval echo \$BTCONFIG_$1)
+		value=$(eval echo "\$BTCONFIG_$1")
 		if [ -n "$value" ] ; then
-			echo $value
+			echo "$value"
 		else
 			echo "${2}"
 		fi
@@ -93,8 +93,8 @@ function conf_check_pattern {
 		fi
 	else
 		varname=$(echo $@ | cut -d= -f1)
-		value=$(eval echo \$BTCONFIG_$varname)
-		echo $varname=$value | grep -q "^${@}"
+		value=$(eval echo "\$BTCONFIG_${varname}")
+		echo $varname="$value" | grep -q "^${@}"
 		if [ "${?}" -eq "0" ]; then
 			echo "1"
 		else
