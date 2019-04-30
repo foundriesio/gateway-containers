@@ -78,5 +78,5 @@ do
 	fi
 done < "/etc/hosts"
 
-# Run BIND
-/usr/sbin/named -c ${BIND_CONF_USE} -f -g
+# Run BIND on port 5354 so that we don't abort due to port 53 usage errors
+/usr/sbin/named -c ${BIND_CONF_USE} -f -g -p 5354
