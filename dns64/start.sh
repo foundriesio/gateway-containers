@@ -21,7 +21,6 @@ BIND_CONF_USE="/var/bind/named.conf"
 RPZ_ZONE_TEMPLATE="/etc/bind/db.rpz.template"
 RPZ_ZONE_USE="/var/bind/db.rpz"
 
-FORWARDER_LIST="8.8.8.8; 8.8.8.4"
 NAT64_PREFIX="64:ff9b::"
 NAT64_MASK=96
 
@@ -30,11 +29,6 @@ function parse_args()
     while [ $# -gt 0 ]
     do
         case $1 in
-        --forwarder-list)
-            FORWARDER_LIST=$2
-            shift
-            shift
-            ;;
         --nat64-prefix)
             NAT64_PREFIX=$2
             shift
@@ -56,7 +50,6 @@ parse_args "$@"
 
 # Create working copy of named.conf.template
 cp ${BIND_CONF_TEMPLATE} ${BIND_CONF_USE}
-sed -i -e "s/%FORWARDER_LIST%/${FORWARDER_LIST}/g" ${BIND_CONF_USE}
 sed -i -e "s/%NAT64_PREFIX%/${NAT64_PREFIX}\/${NAT64_MASK}/g" ${BIND_CONF_USE}
 
 # Create an RPZ zone from db.rpz.template

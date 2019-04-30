@@ -3,9 +3,6 @@ options {
 	dnssec-validation auto;
 	auth-nxdomain no;
 
-	forward only;
-	forwarders { %FORWARDER_LIST%; };
-
 	allow-query { any; };
 
 	# Listening on IPv6 is off by default -- use bt0 / wpan0 IPs
