@@ -8,8 +8,8 @@ options {
 
 	allow-query { any; };
 
-	# Listening on IPv6 is off by default.
-	listen-on-v6 { any; };
+	# Listening on IPv6 is off by default -- use bt0 / wpan0 IPs
+	listen-on-v6 port 53 { fd11:11::1; fd11:22::1; };
 
 	dns64 %NAT64_PREFIX% {
 		exclude { any; };
