@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Network interface monitor")
     parser.add_argument("-i", "--interface", help='Network interface to monitor', required=True)
-    parser.add_argument("-d", "--dyn-ip", help='Dynamic IP address to add to interface')
+    parser.add_argument("-d", "--dyn-ip", help='Dynamic IP address to add to interface', required=True)
     args = parser.parse_args()
 
     interface_name = args.interface
