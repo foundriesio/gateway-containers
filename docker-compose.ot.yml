@@ -9,7 +9,7 @@ services:
       - /var/log
     volumes:
       - /var/run/dbus:/var/dbus
-    command: "--interface wpan0 --ip \"fd11:22::1/64\""
+    command: "--interface wpan0 --ip \"fd11:22::1/64\" --seconds-delay 2"
     network_mode: "host"
     restart: always
     read_only: true
