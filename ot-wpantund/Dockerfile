@@ -19,21 +19,35 @@ FROM alpine:latest as wpantund-dev
 # Based on work by Marcin K Szczodrak
 LABEL maintainer="Michael Scott <mike@foundries.io>"
 
-# Add autoconf-archive
-RUN echo "@testing http://nl.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
-
 # Install build tools
 RUN apk add --no-cache \
-	libc-dev git make autoconf autoconf-archive@testing automake \
+	libc-dev git make autoconf automake \
 	dbus-dev libtool gcc g++ boost-dev readline-dev ctags \
 	avahi-dev jsoncpp-dev
+
+# Build autoconf-archive 2018.03.13
+ENV AA_PKGNAME autoconf-archive
+ENV AA_PKGVER 2018.03.13
+ENV AA_FILE_MD5=46b13a5936372297b6d49980327a3c35
+
+RUN mkdir -p ~/src && \
+	cd ~/src/ && \
+	wget https://ftpmirror.gnu.org/${AA_PKGNAME}/${AA_PKGNAME}-${AA_PKGVER}.tar.xz
+
+RUN [ "$(md5sum ~/src/${AA_PKGNAME}-${AA_PKGVER}.tar.xz | cut -d ' ' -f1)" == "${AA_FILE_MD5}" ]
+
+RUN cd ~/src/ && \
+	tar -xvJf ${AA_PKGNAME}-${AA_PKGVER}.tar.xz && \
+	cd ${AA_PKGNAME}-${AA_PKGVER} && \
+	./configure  --prefix=/usr --sysconfdir=/etc --mandir=/usr/share/man --localstatedir=/var && \
+	make && \
+	make install
 
 # Create symlink for jsoncpp includes
 RUN ln -s /usr/include/ /usr/include/jsoncpp
 
 # make wpantund
-RUN mkdir -p ~/src && \
-	cd ~/src && \
+RUN cd ~/src && \
 	git clone --recursive https://github.com/openthread/wpantund && \
 	cd wpantund && \
 	git reset --hard 8e6a5cf46dc58586e8d4f51881454657f473734c && \
