@@ -40,7 +40,11 @@ RUN cd ~/src && \
 	mvn clean install -DskipTests
 
 # STAGE 2
-FROM alpine:latest
+# HACK: We are reverting to an older JRE version to avoid crash.  Alpine doesn't
+#       let you control the JRE version which is installed so instead get it
+#       directly from openjdk.
+# TODO: Move back to alpine:latest and 8u212
+FROM openjdk:8u201-jre-alpine
 
 LABEL maintainer="Michael Scott <mike@foundries.io>"
 
