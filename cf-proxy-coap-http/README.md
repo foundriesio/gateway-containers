@@ -2,15 +2,12 @@ Eclipse Californium is a Java implementation of RFC7252 - Constrained Applicatio
 
 More information can be found at http://www.eclipse.org/californium/ and http://coap.technology/.
 
-NOTE: The cf-proxy .jar in this folder has been customized with patches to fix handling of multiple file processing
+NOTE: There are 4 patches applied to the Californium cf-proxy project which do the following:
 
-## Build your own version of cf-proxy
-
-  * git clone https://github.com/eclipse/californium -b 2.0.x
-  * cd californium
-  * git am *.patch
-  * mvn clean install
-  * cp demo-apps/run/cf-proxy-*.jar [this folder]
+  * Concurrent CoAP resources
+  * Additional CoAP proxy functionality provided by Matthias Kovatsch
+  * Fixes to CoAP proxy provided by Matthias Kovatsch
+  * Disable the RequestTest which breaks the build
 
 ## How to use this image
 
