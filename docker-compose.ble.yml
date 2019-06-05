@@ -1,0 +1,47 @@
+version: '3.2'
+
+services:
+  radvd64-bt0:
+    image: ${REGISTRY:-hub.foundries.io}/radvd64:${TAG:-latest}
+    tmpfs:
+      - /run
+      - /var/lock
+      - /var/log
+    command: "--interface bt0 --ipv6-prefix \"fd11:11::\" --ipv6-mask 64"
+    network_mode: "host"
+    restart: always
+    read_only: true
+    privileged: true
+
+  iface-mon-bt0:
+    image: ${REGISTRY:-hub.foundries.io}/iface-monitor:${TAG:-latest}
+    tmpfs:
+      - /run
+      - /var/lock
+      - /var/log
+    volumes:
+      - /var/run/dbus:/var/dbus
+    command: "--interface bt0 --ip \"fd11:11::1/64\""
+    network_mode: "host"
+    restart: always
+    read_only: true
+    privileged: true
+    tty: true
+
+  bt-joiner:
+    image: ${REGISTRY:-hub.foundries.io}/bt-joiner:${TAG:-latest}
+    volumes:
+      - ./bt-joiner/bt-joiner-config:/bt-joiner-config
+    environment:
+      CONFIG_PATH: /bt-joiner-config/bluetooth_6lowpand.conf
+    tmpfs:
+      - /run
+      - /var/lock
+      - /var/log
+    depends_on:
+      - radvd64-bt0
+      - iface-mon-bt0
+    network_mode: "host"
+    restart: always
+    read_only: true
+    privileged: true
