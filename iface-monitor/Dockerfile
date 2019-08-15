@@ -17,7 +17,7 @@ FROM alpine:latest
 
 LABEL maintainer="Michael Scott <mike@foundries.io>"
 
-RUN apk add --no-cache dbus py-dbus py-gobject3
+RUN apk add --no-cache dbus python3 py3-dbus py3-gobject3
 
 COPY interface-monitor.py interface-monitor.py
 COPY start.sh start.sh

@@ -53,4 +53,4 @@ rm -rf /run/dbus/
 ln -s /var/dbus /run/dbus
 
 # Run interface monitor
-python2 /interface-monitor.py -i ${MON_INTERFACE} -d ${MON_DYN_IP} -s ${MON_SECONDS_DELAY}
+python3 /interface-monitor.py -i ${MON_INTERFACE} -d ${MON_DYN_IP} -s ${MON_SECONDS_DELAY}
