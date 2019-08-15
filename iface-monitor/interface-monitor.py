@@ -9,10 +9,7 @@ import dbus.mainloop.glib
 import subprocess
 import os.path
 import time
-try:
-    from gi.repository import GObject
-except ImportError:
-    import gobject as GObject
+from gi.repository import GLib
 
 aborted = False
 
@@ -73,5 +70,5 @@ if __name__ == '__main__':
                             path='/org/freedesktop/systemd1',
                             member_keyword='member')
 
-    mainloop = GObject.MainLoop()
+    mainloop = GLib.MainLoop()
     mainloop.run()
