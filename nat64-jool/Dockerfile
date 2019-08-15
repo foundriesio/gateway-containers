@@ -4,22 +4,21 @@ FROM alpine:latest as jool-dev
 LABEL maintainer="Michael Scott <mike@foundries.io>"
 
 ENV \
-	JOOL_VERSION=4.0.0
+	JOOL_VERSION=4.0.4
 
 RUN apk add --no-cache \
 	bash git libc-dev make automake autoconf gcc libnl3-dev iptables-dev \
-	argp-standalone
+	libtool argp-standalone file
 
-# Make jool stateful userspace
 RUN \
 	git clone https://github.com/NICMx/Jool -b v${JOOL_VERSION} && \
 	cd Jool/ && \
+	# Fix "struct option" related errors during build
+	sed -i "s/#include <errno.h>/#include <errno.h>\n#include <getopt.h>/g" src/usr/argp/main.c && \
 	./autogen.sh && \
-	./configure && \
-	cd src/usr/iptables && \
-	make && \
-	make install && \
-	cd ../nat64 && \
+	# We want a static binary for stage 2 (and this avoids linker issues with argp)
+	./configure LDFLAGS="-static" && \
+	cd src/usr/ && \
 	make && \
 	make install
 
