@@ -7,7 +7,7 @@ services:
       - /run
       - /var/lock
       - /var/log
-    command: "--interface bt0 --ipv6-prefix \"fd11:11::\" --ipv6-mask 64"
+    command: "--interface bt0 --ip \"fd11:11::1/64\""
     network_mode: "host"
     restart: always
     read_only: true
